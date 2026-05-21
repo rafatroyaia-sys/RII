@@ -1,0 +1,38 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[functions]
+  directory = "netlify/functions"
+
+# Redirige las llamadas /api/* a las funciones serverless de Netlify
+[[redirects]]
+  from = "/api/market/quote"
+  to = "/.netlify/functions/market-quote"
+  status = 200
+
+[[redirects]]
+  from = "/api/market/historical"
+  to = "/.netlify/functions/market-historical"
+  status = 200
+
+[[redirects]]
+  from = "/api/market/diagnostic"
+  to = "/.netlify/functions/market-diagnostic"
+  status = 200
+
+[[redirects]]
+  from = "/api/fred"
+  to = "/.netlify/functions/fred"
+  status = 200
+
+[[redirects]]
+  from = "/api/fred/diagnostic"
+  to = "/.netlify/functions/fred-diagnostic"
+  status = 200
+
+# SPA fallback — cualquier otra ruta devuelve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
