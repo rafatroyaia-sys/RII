@@ -7,8 +7,9 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { mockAssets } from './data/mockAssets';
 import { mockMentors, KNOWLEDGE_DISCLAIMER } from './data/mockKnowledge';
 import { processAssets } from './logic/scoringEngine';
+import { buildOpportunityCandidates } from './logic/opportunityRadar';
 import { ProcessedAsset, AssetType, Horizon, RiskLevel, MarketData, MacroIndicator, DataQuality } from './types';
-import { fetchManyMarketData } from './services/marketDataService';
+import { fetchAlphaVantageHistorical, fetchManyMarketData } from './services/marketDataService';
 import { fetchMacroIndicators } from './services/macroDataService';
 import { enrichAssetsWithMarketData } from './logic/enrichAssets';
 import { assetMappings } from './data/assetMappings';
@@ -25,6 +26,7 @@ import { AssetFilters } from './components/dashboard/AssetFilters';
 import { AssetTable } from './components/dashboard/AssetTable';
 import { AssetDetailModal } from './components/dashboard/AssetDetailModal';
 import { MiniRanking } from './components/dashboard/MiniRanking';
+import { OpportunityCatalystPanel } from './components/dashboard/OpportunityCatalystPanel';
 import { MacroDashboard } from './components/data/MacroDashboard';
 import { CompoundInterestCalculator } from './components/tools/CompoundInterestCalculator';
 import { InvestorProfileTest } from './components/tools/InvestorProfileTest';
@@ -52,6 +54,8 @@ import {
   Globe,
   BookOpen
 } from 'lucide-react';
+
+const OPPORTUNITY_HISTORICAL_LIMIT = 14;
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'calculator' | 'radar' | 'macro' | 'education'>('home');
@@ -121,8 +125,27 @@ export default function App() {
       const tickers = mockAssets.map(a => a.ticker);
       const market = await fetchManyMarketData(tickers, forceRefresh);
       setMarketDataMap(market);
+      const opportunityTickers = [...mockAssets]
+        .filter(asset => assetMappings[asset.ticker]?.enabledForRealMarketData && asset.type !== AssetType.Defensivo)
+        .sort((a, b) => {
+          const aScore = a.scores.potential + a.scores.trust - a.scores.risk * 0.6;
+          const bScore = b.scores.potential + b.scores.trust - b.scores.risk * 0.6;
+          return bScore - aScore;
+        })
+        .slice(0, OPPORTUNITY_HISTORICAL_LIMIT)
+        .map(asset => asset.ticker);
 
-      const enabledMarketVals = Object.values(market).filter(m => assetMappings[m.symbol]?.enabledForRealMarketData);
+      const marketWithHistorical = { ...market };
+      for (const ticker of opportunityTickers) {
+        const historical = await fetchAlphaVantageHistorical(ticker, false, forceRefresh);
+        marketWithHistorical[ticker] = {
+          ...marketWithHistorical[ticker],
+          ...historical
+        };
+      }
+      setMarketDataMap(marketWithHistorical);
+
+      const enabledMarketVals = Object.values(marketWithHistorical).filter(m => assetMappings[m.symbol]?.enabledForRealMarketData);
       let marketStatus: string = "simulated";
       if (enabledMarketVals.length > 0) {
         const allMarketReal = enabledMarketVals.every(m => m.status === 'real' && !m.fromCache);
@@ -154,11 +177,11 @@ export default function App() {
         else macroStatus = "simulated";
       }
 
-      const anyMarketCache = Object.values(market).some(m => m.fromCache);
+      const anyMarketCache = Object.values(marketWithHistorical).some(m => m.fromCache);
       const anyMacroCache = macro.some(m => m.fromCache);
       const isUsingCache = anyMarketCache || anyMacroCache;
       
-      const isMarketRateLimited = Object.values(market).some(m => m.errorReason?.includes("limit") || m.errorReason?.includes("Límite") || m.fallbackReason?.includes("Límite"));
+      const isMarketRateLimited = Object.values(marketWithHistorical).some(m => m.errorReason?.includes("limit") || m.errorReason?.includes("Límite") || m.fallbackReason?.includes("Límite"));
 
       setDataQuality(prev => ({
         ...prev,
@@ -191,6 +214,10 @@ export default function App() {
       return matchType && matchHorizon && matchRisk && matchSearch;
     });
   }, [allProcessedAssets, filters]);
+
+  const opportunityCandidates = useMemo(() => {
+    return buildOpportunityCandidates(allProcessedAssets, 6);
+  }, [allProcessedAssets]);
 
   // Derived rankings
   const andreaTopETFs = useMemo(() => {
@@ -463,6 +490,13 @@ export default function App() {
 
               {/* Main Dashboard Area */}
               <div className="xl:col-span-3 space-y-8">
+                <SectionCard
+                  title="Oportunidades de Hoy / Catalizadores"
+                  subtitle="Activos para estudiar por caida, cercania a minimos, calidad y condiciones de mejora"
+                  icon={<Radar size={18} />}
+                >
+                  <OpportunityCatalystPanel candidates={opportunityCandidates} onSelect={setSelectedAsset} />
+                </SectionCard>
                 
                 {/* Filters */}
                 <AssetFilters filters={filters} setFilters={setFilters} />
