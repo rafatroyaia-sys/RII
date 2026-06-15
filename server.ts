@@ -306,6 +306,30 @@ async function startServer() {
     }
   });
 
+  // Endpoint Radar de Asimetría → EODHD (con caché de backend, misma lógica que la Netlify Function)
+  app.get("/api/asymmetry/companies", async (req, res) => {
+    const force = req.query.force === "true";
+    const apiKey = process.env.EODHD_API_KEY;
+    if (!apiKey || apiKey.length < 8 || apiKey === "your_api_key_here") {
+      return res.json({
+        source: "mock",
+        companies: [],
+        note: "EODHD_API_KEY no configurada en el servidor; usando datos mock.",
+      });
+    }
+    try {
+      const { getAsymmetryCompaniesCached } = await import("./src/server/asymmetryCache");
+      const data = await getAsymmetryCompaniesCached(apiKey, force);
+      return res.json(data);
+    } catch (error: any) {
+      return res.json({
+        source: "mock",
+        companies: [],
+        note: `Error al consultar EODHD: ${error?.message || "desconocido"}. Usando datos mock.`,
+      });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

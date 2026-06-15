@@ -4,6 +4,8 @@
 
 [functions]
   directory = "netlify/functions"
+  # Necesario para empaquetar la función TypeScript con imports entre carpetas (src/server/*)
+  node_bundler = "esbuild"
 
 # Redirige las llamadas /api/* a las funciones serverless de Netlify
 [[redirects]]
@@ -29,6 +31,11 @@
 [[redirects]]
   from = "/api/fred/diagnostic"
   to = "/.netlify/functions/fred-diagnostic"
+  status = 200
+
+[[redirects]]
+  from = "/api/asymmetry/companies"
+  to = "/.netlify/functions/asymmetry-companies"
   status = 200
 
 # SPA fallback — cualquier otra ruta devuelve index.html

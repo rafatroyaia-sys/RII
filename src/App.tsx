@@ -31,6 +31,9 @@ import { MacroDashboard } from './components/data/MacroDashboard';
 import { CompoundInterestCalculator } from './components/tools/CompoundInterestCalculator';
 import { InvestorProfileTest } from './components/tools/InvestorProfileTest';
 
+// Radar de Asimetría
+import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
+
 // Charts
 import { RiskPotentialMap } from './components/charts/RiskPotentialMap';
 import { OpportunityBarChart } from './components/charts/OpportunityBarChart';
@@ -52,13 +55,14 @@ import {
   UserCheck,
   Calculator,
   Globe,
-  BookOpen
+  BookOpen,
+  Crosshair
 } from 'lucide-react';
 
 const OPPORTUNITY_HISTORICAL_LIMIT = 14;
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'calculator' | 'radar' | 'macro' | 'education'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'calculator' | 'radar' | 'asimetria' | 'macro' | 'education'>('home');
   const [filters, setFilters] = useState({
     type: "",
     horizon: "",
@@ -339,6 +343,7 @@ export default function App() {
           <button onClick={() => setActiveTab('profile')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'profile' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><UserCheck size={16}/> Mi Perfil Inversor</button>
           <button onClick={() => setActiveTab('calculator')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'calculator' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Calculator size={16}/> Calculadora</button>
           <button onClick={() => setActiveTab('radar')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'radar' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Radar size={16}/> Radar</button>
+          <button onClick={() => setActiveTab('asimetria')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'asimetria' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Crosshair size={16}/> Radar de Asimetría</button>
           <button onClick={() => setActiveTab('macro')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'macro' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Globe size={16}/> Macroeconomía</button>
           <button onClick={() => setActiveTab('education')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'education' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><BookOpen size={16}/> Formación</button>
         </div>
@@ -523,6 +528,11 @@ export default function App() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Radar de Asimetría Tab */}
+        {activeTab === 'asimetria' && (
+          <AsymmetryRadarPage />
         )}
 
         {/* Footnote */}
