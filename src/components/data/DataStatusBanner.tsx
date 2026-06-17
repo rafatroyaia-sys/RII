@@ -47,15 +47,15 @@ export const DataStatusBanner: React.FC<DataStatusBannerProps> = ({ quality, isR
           Datos Macro: <strong>{statusTranslations[quality.macroDataStatus] || quality.macroDataStatus}</strong>
         </span>
       </div>
-      <div className="text-xs opacity-80 w-full md:w-auto mt-2 md:mt-0 flex flex-col gap-1">
+      <div className="text-xs opacity-80 w-full lg:w-auto mt-2 lg:mt-0 flex flex-col gap-1">
         {quality.isMarketRateLimited ? (
           <span className="text-amber-300">
             El proveedor de mercado (Yahoo Finance u otro) está limitando temporalmente las consultas o presenta errores. Se están utilizando datos en caché o simulados para mantener la experiencia educativa.
           </span>
         ) : (
-          <span>Los datos pueden proceder de API real, caché o simulación de seguridad.</span>
+          <span>API real, caché o simulación de seguridad según disponibilidad.</span>
         )}
-        <span className="block text-[11px] opacity-90">
+        <span className="hidden sm:block text-[11px] opacity-90">
           💡 <strong>Caché</strong> significa que se usa el último dato real guardado para no consumir llamadas innecesarias.
         </span>
       </div>

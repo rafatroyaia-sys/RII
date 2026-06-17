@@ -333,17 +333,17 @@ export default function App() {
         {/* Warning Banner */}
         <WarningBanner 
           type="warning"
-          message="HERRAMIENTA EDUCATIVA: No constituye asesoramiento financiero. Estos son datos combinados con fines de entrenamiento y visualización. No tomes decisiones de inversión basadas únicamente en este radar. Los datos pueden proceder de API real, caché o simulación educativa de seguridad."
+          message="Herramienta educativa: no constituye asesoramiento financiero. Usa el radar para estudiar y comparar; valida siempre los datos antes de tomar decisiones de inversión."
         />
         <DataStatusBanner quality={dataQuality} isRefreshing={isRefreshing} />
         
         {/* Navigation Tabs */}
-        <div className="flex overflow-x-auto whitespace-nowrap gap-2 mb-8 bg-slate-900 border border-slate-800 p-2 rounded-2xl sticky top-4 z-40 shadow-xl shadow-slate-950/50 [&::-webkit-scrollbar]:hidden">
+        <div className="flex overflow-x-auto whitespace-nowrap gap-2 mb-8 -mx-4 sm:mx-0 px-4 sm:px-2 py-2 bg-slate-900 border-y sm:border border-slate-800 sm:rounded-2xl sticky top-3 z-40 shadow-xl shadow-slate-950/50 [&::-webkit-scrollbar]:hidden">
           <button onClick={() => setActiveTab('home')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'home' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Home size={16}/> Inicio</button>
-          <button onClick={() => setActiveTab('profile')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'profile' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><UserCheck size={16}/> Mi Perfil Inversor</button>
+          <button onClick={() => setActiveTab('profile')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'profile' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><UserCheck size={16}/> <span className="hidden sm:inline">Mi Perfil Inversor</span><span className="sm:hidden">Perfil</span></button>
           <button onClick={() => setActiveTab('calculator')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'calculator' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Calculator size={16}/> Calculadora</button>
           <button onClick={() => setActiveTab('radar')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'radar' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Radar size={16}/> Radar</button>
-          <button onClick={() => setActiveTab('asimetria')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'asimetria' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Crosshair size={16}/> Radar de Asimetría</button>
+          <button onClick={() => setActiveTab('asimetria')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'asimetria' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Crosshair size={16}/> <span className="hidden sm:inline">Radar de Asimetría</span><span className="sm:hidden">Asimetría</span></button>
           <button onClick={() => setActiveTab('macro')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'macro' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Globe size={16}/> Macroeconomía</button>
           <button onClick={() => setActiveTab('education')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'education' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><BookOpen size={16}/> Formación</button>
         </div>
@@ -357,6 +357,22 @@ export default function App() {
                 Esta es una <strong>herramienta educativa</strong> diseñada para ayudarte a entender cómo funcionan los mercados, cómo evaluar el riesgo y cómo se comporta el interés compuesto. <br/><br/>
                 No te diremos qué comprar. Te ayudaremos a <strong>estudiar, vigilar y comparar</strong> activos como si tuvieras a un equipo de mentores a tu lado.
               </p>
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-colors"
+                >
+                  <UserCheck size={16} />
+                  Empezar con mi perfil
+                </button>
+                <button
+                  onClick={() => setActiveTab('radar')}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 text-slate-100 border border-slate-700 font-bold hover:bg-slate-700 transition-colors"
+                >
+                  <Radar size={16} />
+                  Ver radar educativo
+                </button>
+              </div>
               
               <h3 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
                 <Info size={20}/> Ruta recomendada para principiantes
@@ -474,19 +490,19 @@ export default function App() {
               {/* Sidebar Left Rankings */}
               <div className="xl:col-span-1 space-y-6">
                 <MiniRanking 
-                  title="Top Corto Plazo" 
+                  title="Ideas corto plazo" 
                   assets={allProcessedAssets} 
                   scoreKey="shortTermScore" 
                   onSelect={setSelectedAsset} 
                 />
                 <MiniRanking 
-                  title="Top Largo Plazo" 
+                  title="Ideas largo plazo" 
                   assets={allProcessedAssets} 
                   scoreKey="longTermScore" 
                   onSelect={setSelectedAsset} 
                 />
                 <MiniRanking 
-                  title="Top ETFs Educativos" 
+                  title="ETFs educativos" 
                   assets={andreaTopETFs} 
                   scoreKey="andreaScore" 
                   onSelect={setSelectedAsset} 
@@ -496,8 +512,8 @@ export default function App() {
               {/* Main Dashboard Area */}
               <div className="xl:col-span-3 space-y-8">
                 <SectionCard
-                  title="Oportunidades de Hoy / Catalizadores"
-                  subtitle="Activos para estudiar por caida, cercania a minimos, calidad y condiciones de mejora"
+                  title="Activos para estudiar / catalizadores"
+                  subtitle="Ideas ordenadas por caída, cercanía a mínimos, calidad y condiciones de mejora"
                   icon={<Radar size={18} />}
                 >
                   <OpportunityCatalystPanel candidates={opportunityCandidates} onSelect={setSelectedAsset} />
@@ -507,7 +523,7 @@ export default function App() {
                 <AssetFilters filters={filters} setFilters={setFilters} />
 
                 {/* Main Table */}
-                <SectionCard title="Ranking General del Radar" subtitle="Prioridad basada en relación oportunidad/riesgo puramente algorítmica">
+                <SectionCard title="Ranking educativo del radar" subtitle="Orden algorítmico para estudiar relación oportunidad/riesgo; no es una recomendación de compra">
                   <AssetTable assets={filteredAssets} onSelect={setSelectedAsset} userProfile={userProfile} />
                 </SectionCard>
 
@@ -516,7 +532,7 @@ export default function App() {
                   <SectionCard title="Mapa Riesgo vs Potencial" subtitle="Ubicación visual de activos" icon={<MapIcon size={18} />}>
                     <RiskPotentialMap assets={filteredAssets} />
                   </SectionCard>
-                  <SectionCard title="Top 10 Oportunidades" subtitle="Mayores puntajes actuales" icon={<BarChart3 size={18} />}>
+                  <SectionCard title="10 ideas con mayor puntuación" subtitle="Candidatas para análisis, no órdenes de compra" icon={<BarChart3 size={18} />}>
                     <OpportunityBarChart assets={filteredAssets} />
                   </SectionCard>
                 </div>

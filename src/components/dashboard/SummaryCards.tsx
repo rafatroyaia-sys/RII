@@ -26,11 +26,11 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ assets, id }) => {
 
   const cards = [
     { label: "Activos Analizados", tooltip: "Número total de instrumentos en radar", value: assets.length, icon: <Briefcase />, color: "text-blue-400", bg: "bg-blue-500/10" },
-    { label: "Mejor Oportunidad", tooltip: "Activo con la puntuación compuesta más alta (corto + largo plazo)", value: topOpportunity.ticker, sub: `${topOpportunity.opportunityScore}/100`, icon: <Target />, color: "text-emerald-400", bg: "bg-emerald-500/10" },
-    { label: "Para Principiantes", tooltip: "Activo recomendado por su menor volatilidad y sencillez de comprensión", value: bestForBeginners.ticker, icon: <Users />, color: "text-sky-400", bg: "bg-sky-500/10" },
-    { label: "Riesgo Máximo", tooltip: "Activo con mayor volatilidad potencial (solo perfiles agresivos)", value: riskiest.ticker, icon: <ShieldAlert />, color: "text-rose-400", bg: "bg-rose-500/10" },
-    { label: "Top Andrea", tooltip: "Favorito actual según el perfil conservador/indexado", value: andreaTop.ticker, icon: <TrendingUp />, color: "text-violet-400", bg: "bg-violet-500/10" },
-    { label: "Top Pablo Gil", tooltip: "Favorito actual según el análisis macro y volatilidad", value: pabloTop.ticker, icon: <Zap />, color: "text-orange-400", bg: "bg-orange-500/10" },
+    { label: "Activo a Estudiar", tooltip: "Activo con la puntuación educativa compuesta más alta (corto + largo plazo)", value: topOpportunity.ticker, sub: `${topOpportunity.opportunityScore}/100`, icon: <Target />, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+    { label: "Para Principiantes", tooltip: "Activo más sencillo de estudiar por volatilidad y comprensión", value: bestForBeginners.ticker, icon: <Users />, color: "text-sky-400", bg: "bg-sky-500/10" },
+    { label: "Mayor Riesgo", tooltip: "Activo con mayor volatilidad potencial dentro del radar", value: riskiest.ticker, icon: <ShieldAlert />, color: "text-rose-400", bg: "bg-rose-500/10" },
+    { label: "Guía Andrea", tooltip: "Activo destacado por reglas de perfil conservador/indexado", value: andreaTop.ticker, icon: <TrendingUp />, color: "text-violet-400", bg: "bg-violet-500/10" },
+    { label: "Guía Pablo", tooltip: "Activo destacado por reglas de análisis macro y volatilidad", value: pabloTop.ticker, icon: <Zap />, color: "text-orange-400", bg: "bg-orange-500/10" },
   ];
 
   return (
