@@ -1,6 +1,6 @@
 import React from 'react';
 import { MacroIndicator } from '../../types';
-import { Globe2, Activity, Percent } from 'lucide-react';
+import { Globe2 } from 'lucide-react';
 
 interface MacroDashboardProps {
   indicators: MacroIndicator[];
@@ -16,7 +16,9 @@ export const MacroDashboard: React.FC<MacroDashboardProps> = ({ indicators }) =>
         Panel Macroeconómico
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {indicators.map((indicator) => (
+        {indicators.map((indicator) => {
+          const isCpiIndex = indicator.id === 'CPIAUCSL' && (indicator.unit.toLowerCase().includes('índice') || (indicator.value ?? 0) > 20);
+          return (
           <div key={indicator.id} className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 flex flex-col justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1 flex items-center justify-between">
@@ -33,7 +35,7 @@ export const MacroDashboard: React.FC<MacroDashboardProps> = ({ indicators }) =>
                 </span>
               </p>
               <h3 className="text-xs text-slate-300 line-clamp-2 min-h-[32px]">
-                {indicator.id === 'CPIAUCSL' ? 'IPC índice CPI (EE.UU.)' : indicator.name}
+                {indicator.name}
               </h3>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
@@ -41,10 +43,10 @@ export const MacroDashboard: React.FC<MacroDashboardProps> = ({ indicators }) =>
                 {indicator.value !== null ? indicator.value.toFixed(2) : '--'}
               </span>
               <span className="text-xs text-slate-400">
-                {indicator.id === 'CPIAUCSL' ? 'índice' : indicator.unit}
+                {indicator.unit}
               </span>
             </div>
-            {indicator.id === 'CPIAUCSL' && (
+            {isCpiIndex && (
               <p className="text-[9px] text-blue-400 mt-1 mb-1 leading-tight">
                 No es tasa interanual; es el nivel del índice CPI.
               </p>
@@ -60,7 +62,8 @@ export const MacroDashboard: React.FC<MacroDashboardProps> = ({ indicators }) =>
               </p>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

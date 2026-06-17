@@ -28,8 +28,10 @@ import { AssetDetailModal } from './components/dashboard/AssetDetailModal';
 import { MiniRanking } from './components/dashboard/MiniRanking';
 import { OpportunityCatalystPanel } from './components/dashboard/OpportunityCatalystPanel';
 import { MacroDashboard } from './components/data/MacroDashboard';
+import { MacroTrafficLight } from './components/data/MacroTrafficLight';
 import { CompoundInterestCalculator } from './components/tools/CompoundInterestCalculator';
 import { InvestorProfileTest } from './components/tools/InvestorProfileTest';
+import { PortfolioPage } from './components/portfolio/PortfolioPage';
 
 // Radar de Asimetría
 import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
@@ -56,13 +58,14 @@ import {
   Calculator,
   Globe,
   BookOpen,
-  Crosshair
+  Crosshair,
+  Briefcase
 } from 'lucide-react';
 
 const OPPORTUNITY_HISTORICAL_LIMIT = 14;
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'calculator' | 'radar' | 'asimetria' | 'macro' | 'education'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'portfolio' | 'calculator' | 'radar' | 'asimetria' | 'macro' | 'education'>('home');
   const [filters, setFilters] = useState({
     type: "",
     horizon: "",
@@ -341,6 +344,7 @@ export default function App() {
         <div className="flex overflow-x-auto whitespace-nowrap gap-2 mb-8 -mx-4 sm:mx-0 px-4 sm:px-2 py-2 bg-slate-900 border-y sm:border border-slate-800 sm:rounded-2xl sticky top-3 z-40 shadow-xl shadow-slate-950/50 [&::-webkit-scrollbar]:hidden">
           <button onClick={() => setActiveTab('home')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'home' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Home size={16}/> Inicio</button>
           <button onClick={() => setActiveTab('profile')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'profile' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><UserCheck size={16}/> <span className="hidden sm:inline">Mi Perfil Inversor</span><span className="sm:hidden">Perfil</span></button>
+          <button onClick={() => setActiveTab('portfolio')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'portfolio' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Briefcase size={16}/> <span className="hidden sm:inline">Mi Cartera</span><span className="sm:hidden">Cartera</span></button>
           <button onClick={() => setActiveTab('calculator')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'calculator' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Calculator size={16}/> Calculadora</button>
           <button onClick={() => setActiveTab('radar')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'radar' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Radar size={16}/> Radar</button>
           <button onClick={() => setActiveTab('asimetria')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'asimetria' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Crosshair size={16}/> <span className="hidden sm:inline">Radar de Asimetría</span><span className="sm:hidden">Asimetría</span></button>
@@ -378,7 +382,7 @@ export default function App() {
                 <Info size={20}/> Ruta recomendada para principiantes
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div onClick={() => setActiveTab('profile')} className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-emerald-500/50 transition-all hover:-translate-y-1">
                   <div className="text-emerald-500 font-bold mb-2">Paso 1</div>
                   <h4 className="text-white font-semibold mb-2">Conocer mi perfil</h4>
@@ -389,18 +393,23 @@ export default function App() {
                   <h4 className="text-white font-semibold mb-2">Interés compuesto</h4>
                   <p className="text-slate-400 text-xs">Entiende cómo el tiempo puede multiplicar tus aportaciones.</p>
                 </div>
-                <div onClick={() => setActiveTab('radar')} className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-emerald-500/50 transition-all hover:-translate-y-1">
+                <div onClick={() => setActiveTab('portfolio')} className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-emerald-500/50 transition-all hover:-translate-y-1">
                   <div className="text-emerald-500 font-bold mb-2">Paso 3</div>
+                  <h4 className="text-white font-semibold mb-2">Mi cartera</h4>
+                  <p className="text-slate-400 text-xs">Registra tus activos de forma privada en este navegador.</p>
+                </div>
+                <div onClick={() => setActiveTab('radar')} className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-emerald-500/50 transition-all hover:-translate-y-1">
+                  <div className="text-emerald-500 font-bold mb-2">Paso 4</div>
                   <h4 className="text-white font-semibold mb-2">Estudiar activos</h4>
                   <p className="text-slate-400 text-xs">Explora el radar y mira qué opciones encajan contigo.</p>
                 </div>
                 <div onClick={() => setActiveTab('macro')} className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-emerald-500/50 transition-all hover:-translate-y-1">
-                  <div className="text-emerald-500 font-bold mb-2">Paso 4</div>
+                  <div className="text-emerald-500 font-bold mb-2">Paso 5</div>
                   <h4 className="text-white font-semibold mb-2">Entorno global</h4>
                   <p className="text-slate-400 text-xs">Aprende cómo afecta la inflación y los tipos de interés.</p>
                 </div>
                 <div onClick={() => setActiveTab('education')} className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-emerald-500/50 transition-all hover:-translate-y-1">
-                  <div className="text-emerald-500 font-bold mb-2">Paso 5</div>
+                  <div className="text-emerald-500 font-bold mb-2">Paso 6</div>
                   <h4 className="text-white font-semibold mb-2">Mente fría</h4>
                   <p className="text-slate-400 text-xs">Lee a los mentores y evita tomar decisiones impulsivas.</p>
                 </div>
@@ -429,6 +438,11 @@ export default function App() {
           </div>
         )}
 
+        {/* Portfolio Tab */}
+        {activeTab === 'portfolio' && (
+          <PortfolioPage assets={allProcessedAssets} onSelectAsset={setSelectedAsset} />
+        )}
+
         {/* Education Tab */}
         {activeTab === 'education' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -447,6 +461,7 @@ export default function App() {
         {/* Macro Tab */}
         {activeTab === 'macro' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <MacroTrafficLight indicators={macroIndicators} />
             <MacroDashboard indicators={macroIndicators} />
           </div>
         )}
