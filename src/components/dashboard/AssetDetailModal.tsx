@@ -35,6 +35,14 @@ interface AssetDetailModalProps {
   onCalculateAsset?: (asset: ProcessedAsset, customReturn: number) => void;
 }
 
+const scoreBreakdownItems = [
+  { key: "potential", label: "Potencial", note: "capacidad de crecimiento o revalorizacion" },
+  { key: "trust", label: "Confianza", note: "calidad, solidez y facilidad de seguimiento" },
+  { key: "valuation", label: "Precio razonable", note: "comodidad frente a una valoracion exigente" },
+  { key: "risk", label: "Riesgo", note: "volatilidad, complejidad y posibilidad de caidas fuertes" },
+  { key: "beginnerFriendly", label: "Sencillez", note: "encaje para inversores menos expertos" },
+] as const;
+
 export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ 
   asset, 
   onClose, 
@@ -66,6 +74,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
 
   const relevantRules = getRelevantKnowledgeRules(asset, allKnowledgeRules);
   const mData = { ...asset.marketData, ...historicalData };
+  const valuationComfort = 100 - asset.scores.valuation;
 
   return (
     <AnimatePresence>
@@ -142,6 +151,38 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                     <Info size={16} /> Veredicto Prudente
                   </h3>
                   <p className="text-white font-medium">{asset.prudentLabel}</p>
+                </div>
+
+                <div className="bg-slate-800/30 rounded-2xl p-6 border border-white/5">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <Info size={14} className="text-sky-400" /> Lectura del score
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                    La oportunidad prioriza confianza y potencial, suma margen de valoracion y resta riesgo. Los scores de corto y largo plazo cambian segun horizonte, sencillez y tolerancia a volatilidad.
+                  </p>
+                  <div className="space-y-3">
+                    {scoreBreakdownItems.map((item) => {
+                      const rawValue = asset.scores[item.key];
+                      const displayValue = item.key === "valuation" ? valuationComfort : rawValue;
+                      const barColor = item.key === "risk"
+                        ? "bg-rose-400"
+                        : item.key === "valuation"
+                          ? "bg-sky-400"
+                          : "bg-emerald-400";
+                      return (
+                        <div key={item.key}>
+                          <div className="flex justify-between gap-3 text-[11px] mb-1">
+                            <span className="font-semibold text-slate-200">{item.label}</span>
+                            <span className="font-mono text-slate-400">{displayValue}/100</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-slate-950 overflow-hidden">
+                            <div className={`h-full rounded-full ${barColor}`} style={{ width: `${displayValue}%` }} />
+                          </div>
+                          <p className="text-[10px] text-slate-500 mt-1">{item.note}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Perfil & Adecuación Card */}

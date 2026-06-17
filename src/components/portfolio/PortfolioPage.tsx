@@ -8,6 +8,7 @@ interface PortfolioHolding {
   ticker: string;
   amount: number;
   monthlyContribution: number;
+  targetWeight?: number;
 }
 
 interface PortfolioPageProps {
@@ -44,6 +45,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
   const [ticker, setTicker] = useState("");
   const [amount, setAmount] = useState("");
   const [monthlyContribution, setMonthlyContribution] = useState("");
+  const [targetWeight, setTargetWeight] = useState("");
 
   const assetByTicker = useMemo(() => {
     return new Map(assets.map((asset) => [asset.ticker.toUpperCase(), asset]));
@@ -83,6 +85,17 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
     const topWeight = totalAmount > 0
       ? Math.max(...enrichedHoldings.map((holding) => ((holding.amount || 0) / totalAmount) * 100), 0)
       : 0;
+    const targetPct = enrichedHoldings.reduce((sum, holding) => sum + (holding.targetWeight || 0), 0);
+    const largestDrift = totalAmount > 0
+      ? Math.max(
+          ...enrichedHoldings.map((holding) => {
+            if (!holding.targetWeight) return 0;
+            const currentWeight = ((holding.amount || 0) / totalAmount) * 100;
+            return Math.abs(currentWeight - holding.targetWeight);
+          }),
+          0
+        )
+      : 0;
 
     return {
       totalAmount,
@@ -90,6 +103,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
       highRiskPct: totalAmount > 0 ? (highRiskAmount / totalAmount) * 100 : 0,
       corePct: totalAmount > 0 ? (coreAmount / totalAmount) * 100 : 0,
       topWeight,
+      targetPct,
+      largestDrift,
     };
   }, [enrichedHoldings]);
 
@@ -111,6 +126,16 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
     if (totals.topWeight > 35) result.push("Hay un activo con mucho peso relativo. Comprueba que esa concentración sea intencionada.");
     else result.push("La concentración por activo no parece excesiva con los importes actuales.");
 
+    if (totals.targetPct > 0) {
+      if (Math.abs(totals.targetPct - 100) > 1) {
+        result.push(`Los pesos objetivo suman ${totals.targetPct.toFixed(0)}%. Para usar el rebalanceo como mapa, intenta que sumen 100%.`);
+      } else if (totals.largestDrift > 7) {
+        result.push("Hay desviaciones relevantes frente a tus pesos objetivo. Revisa si las nuevas aportaciones pueden corregirlas poco a poco.");
+      } else {
+        result.push("La cartera registrada está bastante cerca de los pesos objetivo que has marcado.");
+      }
+    }
+
     return result;
   }, [holdings.length, totals]);
 
@@ -121,6 +146,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
     const existing = holdings.find((holding) => holding.ticker.toUpperCase() === cleanTicker);
     const parsedAmount = Number(amount) || 0;
     const parsedMonthly = Number(monthlyContribution) || 0;
+    const parsedTarget = Number(targetWeight) || 0;
 
     if (existing) {
       setHoldings((current) => current.map((holding) => (
@@ -129,19 +155,21 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
               ...holding,
               amount: holding.amount + parsedAmount,
               monthlyContribution: holding.monthlyContribution + parsedMonthly,
+              targetWeight: parsedTarget > 0 ? parsedTarget : holding.targetWeight,
             }
           : holding
       )));
     } else {
       setHoldings((current) => [
         ...current,
-        { id: makeId(), ticker: cleanTicker, amount: parsedAmount, monthlyContribution: parsedMonthly },
+        { id: makeId(), ticker: cleanTicker, amount: parsedAmount, monthlyContribution: parsedMonthly, targetWeight: parsedTarget || undefined },
       ]);
     }
 
     setTicker("");
     setAmount("");
     setMonthlyContribution("");
+    setTargetWeight("");
   };
 
   const removeHolding = (id: string) => {
@@ -165,7 +193,12 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
       const text = await file.text();
       const parsed = JSON.parse(text) as PortfolioHolding[];
       if (Array.isArray(parsed)) {
-        setHoldings(parsed.filter((holding) => holding.ticker));
+        setHoldings(parsed.filter((holding) => holding.ticker).map((holding) => ({
+          ...holding,
+          amount: Number(holding.amount) || 0,
+          monthlyContribution: Number(holding.monthlyContribution) || 0,
+          targetWeight: Number(holding.targetWeight) || undefined,
+        })));
       }
     } catch {
       // Keep current portfolio if import fails.
@@ -204,7 +237,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mb-6">
           <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4">
             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Valor registrado</p>
             <p className="text-xl font-bold text-white mt-1">{formatEuro(totals.totalAmount)}</p>
@@ -221,9 +254,15 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Riesgo alto/extremo</p>
             <p className="text-xl font-bold text-amber-400 mt-1">{totals.highRiskPct.toFixed(0)}%</p>
           </div>
+          <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4">
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Objetivos marcados</p>
+            <p className={`text-xl font-bold mt-1 ${Math.abs(totals.targetPct - 100) <= 1 ? "text-emerald-400" : "text-sky-400"}`}>
+              {totals.targetPct.toFixed(0)}%
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_auto_auto] gap-3 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_auto_auto_auto] gap-3 mb-6">
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Activo</label>
             <input
@@ -259,6 +298,16 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
               className="w-full lg:w-32 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 outline-none focus:border-emerald-500"
             />
           </div>
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Objetivo %</label>
+            <input
+              value={targetWeight}
+              onChange={(event) => setTargetWeight(event.target.value)}
+              inputMode="decimal"
+              placeholder="0"
+              className="w-full lg:w-28 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 outline-none focus:border-emerald-500"
+            />
+          </div>
           <button
             onClick={addHolding}
             className="self-end inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-colors"
@@ -274,13 +323,15 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
           </div>
         ) : (
           <div className="overflow-x-auto border border-slate-800 rounded-xl">
-            <table className="w-full min-w-[760px] text-left">
+            <table className="w-full min-w-[920px] text-left">
               <thead className="bg-slate-950/60 text-[10px] uppercase tracking-widest text-slate-500">
                 <tr>
                   <th className="px-4 py-3">Activo</th>
                   <th className="px-4 py-3">Tipo</th>
                   <th className="px-4 py-3">Riesgo</th>
                   <th className="px-4 py-3 text-right">Peso</th>
+                  <th className="px-4 py-3 text-right">Objetivo</th>
+                  <th className="px-4 py-3 text-right">Ajuste</th>
                   <th className="px-4 py-3 text-right">Importe</th>
                   <th className="px-4 py-3 text-right">Mensual</th>
                   <th className="px-4 py-3"></th>
@@ -289,6 +340,9 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
               <tbody className="divide-y divide-slate-800/70">
                 {enrichedHoldings.map((holding) => {
                 const weight = totals.totalAmount > 0 ? (holding.amount / totals.totalAmount) * 100 : 0;
+                const target = holding.targetWeight || 0;
+                const targetAmount = target > 0 ? (totals.totalAmount * target) / 100 : 0;
+                const driftAmount = target > 0 ? targetAmount - holding.amount : 0;
                 return (
                   <tr key={holding.id} className="hover:bg-white/[0.02]">
                     <td className="px-4 py-3">
@@ -305,6 +359,10 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
                       <Badge variant={riskVariant(holding.asset?.riskLevel)}>{holding.asset?.riskLevel || "Sin dato"}</Badge>
                     </td>
                     <td className="px-4 py-3 text-right text-slate-300">{weight.toFixed(1)}%</td>
+                    <td className="px-4 py-3 text-right text-slate-300">{target ? `${target.toFixed(1)}%` : "-"}</td>
+                    <td className={`px-4 py-3 text-right font-mono ${driftAmount > 0 ? "text-emerald-400" : driftAmount < 0 ? "text-amber-400" : "text-slate-500"}`}>
+                      {target ? `${driftAmount > 0 ? "+" : ""}${formatEuro(driftAmount)}` : "-"}
+                    </td>
                     <td className="px-4 py-3 text-right font-mono text-slate-200">{formatEuro(holding.amount)}</td>
                     <td className="px-4 py-3 text-right font-mono text-slate-200">{formatEuro(holding.monthlyContribution)}</td>
                     <td className="px-4 py-3 text-right">
