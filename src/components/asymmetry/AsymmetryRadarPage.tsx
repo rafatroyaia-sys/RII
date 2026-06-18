@@ -19,6 +19,7 @@ import {
 } from "./AsymmetryFilters";
 import { AsymmetryTable } from "./AsymmetryTable";
 import { AsymmetryDetailModal } from "./AsymmetryDetailModal";
+import { CustomAnomalyScanner } from "./CustomAnomalyScanner";
 import {
   Crosshair,
   Lightbulb,
@@ -238,6 +239,8 @@ export const AsymmetryRadarPage: React.FC = () => {
           resultados, pero ayuda a filtrar oportunidades para estudiarlas con más detalle.
         </p>
       </SectionCard>
+
+      <CustomAnomalyScanner />
 
       {/* Tarjetas resumen */}
       <AsymmetrySummaryCards companies={processed} />

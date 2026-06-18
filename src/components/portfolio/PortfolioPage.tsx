@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ProcessedAsset, AssetType, RiskLevel } from "../../types";
 import { Badge } from "../ui/Badge";
-import { Briefcase, Plus, Trash2, ShieldCheck, AlertTriangle, Download, Upload } from "lucide-react";
+import { Briefcase, Plus, Trash2, ShieldCheck, AlertTriangle, Download, Upload, Sparkles } from "lucide-react";
 
 interface PortfolioHolding {
   id: string;
@@ -17,6 +17,41 @@ interface PortfolioPageProps {
 }
 
 const STORAGE_KEY = "rii_local_portfolio_v1";
+
+const PORTFOLIO_TEMPLATES = [
+  {
+    name: "Indexada prudente",
+    description: "Base global, liquidez y bonos cortos.",
+    holdings: [
+      { ticker: "VWCE", targetWeight: 55 },
+      { ticker: "XEON", targetWeight: 25 },
+      { ticker: "AGGG", targetWeight: 20 },
+    ],
+  },
+  {
+    name: "Crecimiento controlado",
+    description: "Nucleo ETF con satelites tecnologicos.",
+    holdings: [
+      { ticker: "VWCE", targetWeight: 50 },
+      { ticker: "CSPX", targetWeight: 20 },
+      { ticker: "SMH", targetWeight: 15 },
+      { ticker: "CYBR", targetWeight: 10 },
+      { ticker: "XEON", targetWeight: 5 },
+    ],
+  },
+  {
+    name: "Radar satelite",
+    description: "Cartera para estudiar ideas sin concentrar demasiado.",
+    holdings: [
+      { ticker: "VWCE", targetWeight: 45 },
+      { ticker: "MSFT", targetWeight: 10 },
+      { ticker: "ASML", targetWeight: 10 },
+      { ticker: "NVDA", targetWeight: 8 },
+      { ticker: "NOVO-B", targetWeight: 7 },
+      { ticker: "XEON", targetWeight: 20 },
+    ],
+  },
+];
 
 function makeId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -207,6 +242,24 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
     }
   };
 
+  const applyTemplate = (template: typeof PORTFOLIO_TEMPLATES[number]) => {
+    setHoldings((current) => {
+      const byTicker = new Map(current.map((holding) => [holding.ticker.toUpperCase(), holding]));
+      template.holdings.forEach((item) => {
+        const key = item.ticker.toUpperCase();
+        const existing = byTicker.get(key);
+        byTicker.set(key, {
+          id: existing?.id || makeId(),
+          ticker: key,
+          amount: existing?.amount || 0,
+          monthlyContribution: existing?.monthlyContribution || 0,
+          targetWeight: item.targetWeight,
+        });
+      });
+      return Array.from(byTicker.values());
+    });
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <section className="bg-slate-900 border border-emerald-500/20 rounded-2xl p-6 shadow-xl">
@@ -259,6 +312,25 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
             <p className={`text-xl font-bold mt-1 ${Math.abs(totals.targetPct - 100) <= 1 ? "text-emerald-400" : "text-sky-400"}`}>
               {totals.targetPct.toFixed(0)}%
             </p>
+          </div>
+        </div>
+
+        <div className="mb-6 bg-slate-950/40 border border-slate-800 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={16} className="text-emerald-400" />
+            <h3 className="text-sm font-bold text-slate-200">Plantillas de pesos objetivo</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {PORTFOLIO_TEMPLATES.map((template) => (
+              <button
+                key={template.name}
+                onClick={() => applyTemplate(template)}
+                className="text-left rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors"
+              >
+                <span className="block text-sm font-bold text-white">{template.name}</span>
+                <span className="block text-[11px] text-slate-500 mt-1">{template.description}</span>
+              </button>
+            ))}
           </div>
         </div>
 
