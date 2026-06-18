@@ -78,7 +78,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div id={id} className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div id={id} className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-3 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] sm:items-center sm:p-6">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -91,33 +91,37 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-5xl max-h-[90vh] bg-slate-900 border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+          className="relative w-full max-w-5xl max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem)] bg-slate-900 border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh]"
         >
           {/* Header */}
-          <div className="px-8 py-6 border-b border-white/5 flex items-start justify-between bg-gradient-to-r from-slate-900 to-slate-800">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-2xl">
+          <div className="px-4 py-4 sm:px-8 sm:py-6 border-b border-white/5 flex items-start justify-between gap-3 bg-gradient-to-r from-slate-900 to-slate-800">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-shrink-0 items-center justify-center text-emerald-400 font-bold text-xl sm:text-2xl">
                 {asset.ticker.charAt(0)}
               </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <h2 className="text-3xl font-bold text-white">{asset.name}</h2>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <h2 className="text-xl sm:text-3xl font-bold text-white leading-tight">{asset.name}</h2>
                   <Badge variant="neutral" className="font-mono">{asset.ticker}</Badge>
                   <Badge variant="info">{asset.type}</Badge>
                 </div>
-                <div className="flex items-center gap-4 mt-2 text-slate-400 text-sm">
+                <div className="flex items-center gap-3 sm:gap-4 mt-2 text-slate-400 text-sm flex-wrap">
                   <span className="flex items-center gap-1"><BookOpen size={14} /> {asset.sector}</span>
                   <span className="flex items-center gap-1 text-sky-400"><MapPin size={14} /> {asset.recommendedHorizon}</span>
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-slate-400 transition-colors">
+            <button
+              onClick={onClose}
+              aria-label="Cerrar detalle"
+              className="h-11 w-11 flex-shrink-0 rounded-full border border-white/10 bg-slate-950/60 text-slate-300 transition-colors hover:bg-white/10 hover:text-white flex items-center justify-center"
+            >
               <X size={24} />
             </button>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-8">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               
               {/* Left Column: Stats */}

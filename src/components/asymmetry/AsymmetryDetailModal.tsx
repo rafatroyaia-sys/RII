@@ -82,7 +82,7 @@ export const AsymmetryDetailModal: React.FC<AsymmetryDetailModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div id={id} className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div id={id} className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-3 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] sm:items-center sm:p-6">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -95,17 +95,17 @@ export const AsymmetryDetailModal: React.FC<AsymmetryDetailModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-5xl max-h-[90vh] bg-slate-900 border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+          className="relative w-full max-w-5xl max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem)] bg-slate-900 border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh]"
         >
           {/* Header */}
-          <div className="px-6 sm:px-8 py-6 border-b border-white/5 flex items-start justify-between bg-gradient-to-r from-slate-900 to-slate-800">
-            <div className="flex items-center gap-4 sm:gap-6">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-2xl">
+          <div className="px-4 py-4 sm:px-8 sm:py-6 border-b border-white/5 flex items-start justify-between gap-3 bg-gradient-to-r from-slate-900 to-slate-800">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-shrink-0 items-center justify-center text-emerald-400 font-bold text-xl sm:text-2xl">
                 {company.ticker.charAt(0)}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white">{company.name}</h2>
+                  <h2 className="text-xl sm:text-3xl font-bold text-white leading-tight">{company.name}</h2>
                   <Badge variant="neutral" className="font-mono">
                     {company.ticker}
                   </Badge>
@@ -123,7 +123,8 @@ export const AsymmetryDetailModal: React.FC<AsymmetryDetailModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/5 rounded-full text-slate-400 transition-colors"
+              aria-label="Cerrar detalle"
+              className="h-11 w-11 flex-shrink-0 rounded-full border border-white/10 bg-slate-950/60 text-slate-300 transition-colors hover:bg-white/10 hover:text-white flex items-center justify-center"
             >
               <X size={24} />
             </button>
