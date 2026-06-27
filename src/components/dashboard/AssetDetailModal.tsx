@@ -15,7 +15,9 @@ import {
   Clock,
   ShieldAlert,
   Calculator,
-  UserCheck
+  UserCheck,
+  Copy,
+  ClipboardCheck
 } from "lucide-react";
 import { Badge } from "../ui/Badge";
 import { ScorePill } from "../ui/ScorePill";
@@ -53,6 +55,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
 }) => {
   const [historicalData, setHistoricalData] = useState<Partial<MarketData> | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [copiedBrief, setCopiedBrief] = useState(false);
 
   useEffect(() => {
     if (asset) {
@@ -75,6 +78,42 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   const relevantRules = getRelevantKnowledgeRules(asset, allKnowledgeRules);
   const mData = { ...asset.marketData, ...historicalData };
   const valuationComfort = 100 - asset.scores.valuation;
+
+  const copyEducationalBrief = async () => {
+    const lines = [
+      `Ficha educativa - ${asset.name} (${asset.ticker})`,
+      "",
+      `Tipo: ${asset.type}`,
+      `Sector: ${asset.sector}`,
+      `Horizonte sugerido: ${asset.recommendedHorizon}`,
+      `Score oportunidad: ${asset.opportunityScore}/100`,
+      `Riesgo: ${asset.riskLevel} (${asset.scores.risk}/100)`,
+      `Valoracion: ${asset.valuationLabel}`,
+      "",
+      "Por que esta en el radar:",
+      asset.summary,
+      asset.radarReason,
+      "",
+      "Fortalezas:",
+      ...asset.pros.map(item => `- ${item}`),
+      "",
+      "Riesgos:",
+      ...asset.cons.map(item => `- ${item}`),
+      "",
+      "Condiciones a vigilar:",
+      ...asset.worseningConditions.map(item => `- ${item}`),
+      "",
+      "Nota: ficha educativa generada por Radar Inteligente de Inversion. No constituye asesoramiento financiero."
+    ];
+
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      setCopiedBrief(true);
+      window.setTimeout(() => setCopiedBrief(false), 2200);
+    } catch {
+      setCopiedBrief(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -108,6 +147,13 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                 <div className="flex items-center gap-3 sm:gap-4 mt-2 text-slate-400 text-sm flex-wrap">
                   <span className="flex items-center gap-1"><BookOpen size={14} /> {asset.sector}</span>
                   <span className="flex items-center gap-1 text-sky-400"><MapPin size={14} /> {asset.recommendedHorizon}</span>
+                  <button
+                    onClick={copyEducationalBrief}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-slate-950/40 px-2.5 py-1 text-xs font-semibold text-slate-200 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                  >
+                    {copiedBrief ? <ClipboardCheck size={14} /> : <Copy size={14} />}
+                    {copiedBrief ? "Ficha copiada" : "Copiar ficha"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -298,6 +344,28 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                   <p className="text-slate-300 leading-relaxed">{asset.summary}</p>
                   <div className="mt-4 p-4 bg-slate-800/30 rounded-xl border-l-4 border-sky-500 text-sm italic text-slate-300">
                     "{asset.radarReason}"
+                  </div>
+                </section>
+
+                <section className="bg-slate-800/30 p-5 rounded-2xl border border-white/5">
+                  <h3 className="text-sm font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2 mb-4">
+                    <ClipboardCheck size={16} className="text-emerald-400" />
+                    Checklist antes de decidir
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    {[
+                      "Contrastar precio, noticia y fuente externa actualizada.",
+                      "Comprobar que encaja con tu perfil y horizonte temporal.",
+                      "Definir tamaño máximo de posición antes de entrar.",
+                      "Identificar qué hecho invalidaría la tesis.",
+                      "Evitar concentrar cartera en un solo sector o narrativa.",
+                      "Revisar costes, fiscalidad y liquidez del producto real."
+                    ].map(item => (
+                      <div key={item} className="flex gap-2 rounded-xl bg-slate-950/40 border border-slate-800 p-3 text-slate-300">
+                        <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-400" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
                   </div>
                 </section>
 
