@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ProcessedAsset, AssetType, RiskLevel } from "../../types";
 import { Badge } from "../ui/Badge";
-import { Briefcase, Plus, Trash2, ShieldCheck, AlertTriangle, Download, Upload, Sparkles, Target, TrendingUp } from "lucide-react";
+import { Briefcase, Plus, Trash2, ShieldCheck, AlertTriangle, Download, Upload, Sparkles, Target, TrendingUp, Activity } from "lucide-react";
 
 interface PortfolioHolding {
   id: string;
@@ -108,6 +108,23 @@ function statusTone(ok: boolean, warning = false) {
   if (ok) return "border-emerald-500/25 bg-emerald-500/5 text-emerald-300";
   if (warning) return "border-amber-500/25 bg-amber-500/5 text-amber-300";
   return "border-rose-500/25 bg-rose-500/5 text-rose-300";
+}
+
+function riskDrawdown(risk: RiskLevel | undefined, scenario: "normal" | "crisis" | "extreme") {
+  if (risk === RiskLevel.Bajo) return scenario === "normal" ? -3 : scenario === "crisis" ? -8 : -15;
+  if (risk === RiskLevel.Medio) return scenario === "normal" ? -8 : scenario === "crisis" ? -18 : -30;
+  if (risk === RiskLevel.Alto) return scenario === "normal" ? -15 : scenario === "crisis" ? -35 : -55;
+  if (risk === RiskLevel.Extremo) return scenario === "normal" ? -25 : scenario === "crisis" ? -55 : -75;
+  return scenario === "normal" ? -8 : scenario === "crisis" ? -20 : -35;
+}
+
+function toleratedDrawdown(score?: number | null) {
+  if (score === undefined || score === null) return 15;
+  if (score <= 20) return 5;
+  if (score <= 40) return 10;
+  if (score <= 60) return 20;
+  if (score <= 80) return 35;
+  return 50;
 }
 
 export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAsset, userProfile }) => {
@@ -247,6 +264,33 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
 
     return actions;
   }, [holdings.length, targets, totals]);
+
+  const stressScenarios = useMemo(() => {
+    const scenarios = [
+      { id: "normal" as const, name: "Correccion normal", description: "Caida incomoda pero frecuente en mercados." },
+      { id: "crisis" as const, name: "Crisis fuerte", description: "Mercado bajista con volatilidad elevada." },
+      { id: "extreme" as const, name: "Escenario extremo", description: "Shock severo; no es prediccion, es prueba de aguante." },
+    ];
+
+    return scenarios.map((scenario) => {
+      const lossAmount = enrichedHoldings.reduce((sum, holding) => {
+        const drawdown = riskDrawdown(holding.asset?.riskLevel, scenario.id);
+        return sum + holding.amount * Math.abs(drawdown / 100);
+      }, 0);
+      const lossPct = totals.totalAmount > 0 ? (lossAmount / totals.totalAmount) * 100 : 0;
+      const monthsToRecover = totals.totalMonthly > 0 ? Math.ceil(lossAmount / totals.totalMonthly) : null;
+      const tolerated = toleratedDrawdown(userProfile?.score);
+
+      return {
+        ...scenario,
+        lossAmount,
+        lossPct,
+        monthsToRecover,
+        tolerated,
+        withinProfile: lossPct <= tolerated,
+      };
+    });
+  }, [enrichedHoldings, totals.totalAmount, totals.totalMonthly, userProfile?.score]);
 
   const addHolding = () => {
     const cleanTicker = ticker.trim().toUpperCase();
@@ -433,6 +477,55 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
                 {index === 0 ? <TrendingUp size={16} className="mt-0.5 text-emerald-400" /> : <ShieldCheck size={16} className="mt-0.5 text-sky-400" />}
                 <p className="text-xs leading-relaxed text-slate-300">{action}</p>
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-4">
+          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-amber-400">
+                <Activity size={18} />
+                <h3 className="text-sm font-bold uppercase tracking-widest">Test de estres de cartera</h3>
+              </div>
+              <p className="mt-1 text-sm text-slate-400">
+                Traduce el riesgo a euros. No predice el futuro: ayuda a saber si podrias soportar una caida antes de vivirla.
+              </p>
+            </div>
+            <div className="rounded-lg border border-slate-700 bg-slate-950/50 px-3 py-2 text-xs text-slate-300">
+              Caida tolerable estimada: <strong className="text-white">{toleratedDrawdown(userProfile?.score)}%</strong>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+            {stressScenarios.map((scenario) => (
+              <article
+                key={scenario.id}
+                className={`rounded-xl border p-4 ${statusTone(scenario.withinProfile, scenario.lossPct <= scenario.tolerated + 10)}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-white">{scenario.name}</h4>
+                    <p className="mt-1 text-xs leading-relaxed opacity-85">{scenario.description}</p>
+                  </div>
+                  {scenario.withinProfile ? <ShieldCheck size={18} /> : <AlertTriangle size={18} />}
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Caida estimada</p>
+                    <p className="text-xl font-extrabold text-white">-{scenario.lossPct.toFixed(0)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Impacto</p>
+                    <p className="text-xl font-extrabold text-white">-{formatEuro(scenario.lossAmount)}</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed">
+                  {scenario.monthsToRecover
+                    ? `Con tu aportacion mensual actual, equivaldria a unos ${scenario.monthsToRecover} meses de aportaciones.`
+                    : "Registra aportacion mensual para estimar cuanto esfuerzo de ahorro representa."}
+                </p>
+              </article>
             ))}
           </div>
         </div>
