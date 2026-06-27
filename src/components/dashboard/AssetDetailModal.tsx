@@ -17,7 +17,9 @@ import {
   Calculator,
   UserCheck,
   Copy,
-  ClipboardCheck
+  ClipboardCheck,
+  Target,
+  ShieldCheck
 } from "lucide-react";
 import { Badge } from "../ui/Badge";
 import { ScorePill } from "../ui/ScorePill";
@@ -44,6 +46,104 @@ const scoreBreakdownItems = [
   { key: "risk", label: "Riesgo", note: "volatilidad, complejidad y posibilidad de caidas fuertes" },
   { key: "beginnerFriendly", label: "Sencillez", note: "encaje para inversores menos expertos" },
 ] as const;
+
+function suggestedMaxWeight(profileScore: number | null, risk: RiskLevel): string {
+  if (profileScore === null) return "Completa el perfil";
+  if (profileScore <= 20) {
+    if (risk === RiskLevel.Bajo) return "hasta 5%";
+    return "0-2% solo estudio";
+  }
+  if (profileScore <= 40) {
+    if (risk === RiskLevel.Bajo) return "5-10%";
+    if (risk === RiskLevel.Medio) return "hasta 5%";
+    return "0-2% solo estudio";
+  }
+  if (profileScore <= 60) {
+    if (risk === RiskLevel.Bajo) return "10-15%";
+    if (risk === RiskLevel.Medio) return "5-8%";
+    return "2-4% satelite";
+  }
+  if (profileScore <= 80) {
+    if (risk === RiskLevel.Bajo) return "15-20%";
+    if (risk === RiskLevel.Medio) return "8-12%";
+    if (risk === RiskLevel.Alto) return "4-7%";
+    return "hasta 3%";
+  }
+  if (risk === RiskLevel.Bajo) return "15-20%";
+  if (risk === RiskLevel.Medio) return "10-15%";
+  if (risk === RiskLevel.Alto) return "6-10%";
+  return "3-5%";
+}
+
+function buildDecisionGuide(asset: ProcessedAsset, userProfile: { score: number; name: string } | null, mData: Partial<MarketData>) {
+  const score = userProfile?.score ?? null;
+  const riskGap = score === null ? null : asset.scores.risk - score;
+  const isTooRisky = riskGap !== null && riskGap > 25;
+  const isCaution = riskGap !== null && riskGap > 5 && riskGap <= 25;
+  const isAligned = riskGap !== null && riskGap <= 5;
+
+  const label = score === null
+    ? "Perfil pendiente"
+    : isTooRisky
+      ? "Solo vigilancia educativa"
+      : isCaution
+        ? "Encaje con cautela"
+        : "Encaja mejor con tu perfil";
+
+  const tone = score === null
+    ? "border-slate-700 bg-slate-950/40 text-slate-300"
+    : isTooRisky
+      ? "border-rose-500/30 bg-rose-500/10 text-rose-200"
+      : isCaution
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200";
+
+  const decision = score === null
+    ? "Completa el test para calcular una lectura personalizada antes de estudiar pesos o encaje."
+    : isTooRisky
+      ? `El riesgo del activo (${asset.scores.risk}/100) supera claramente tu tolerancia (${score}/100). Mejor usarlo para aprender o mantenerlo en observacion.`
+      : isCaution
+        ? `El activo exige mas tolerancia que tu perfil actual. Si lo estudias, que sea como satelite pequeno y con tesis escrita.`
+        : `El nivel de riesgo es razonable frente a tu perfil. Aun asi, valida precio, fuente y motivo antes de cualquier decision.`;
+
+  const technicalNotes = [
+    mData.oneMonthChangePercent !== null && mData.oneMonthChangePercent !== undefined
+      ? `Movimiento 1M: ${mData.oneMonthChangePercent > 0 ? "+" : ""}${mData.oneMonthChangePercent.toFixed(2)}%.`
+      : "Movimiento 1M pendiente o sin historico.",
+    mData.threeMonthChangePercent !== null && mData.threeMonthChangePercent !== undefined
+      ? `Movimiento 3M: ${mData.threeMonthChangePercent > 0 ? "+" : ""}${mData.threeMonthChangePercent.toFixed(2)}%.`
+      : "Movimiento 3M pendiente o sin historico.",
+    mData.fiftyTwoWeekHigh && mData.fiftyTwoWeekLow
+      ? `Rango 52S: ${mData.fiftyTwoWeekLow.toFixed(2)} - ${mData.fiftyTwoWeekHigh.toFixed(2)}.`
+      : "Rango 52 semanas pendiente.",
+  ];
+
+  const fundamentalNotes = [
+    `Confianza ${asset.scores.trust}/100: ${asset.scores.trust >= 75 ? "calidad/seguimiento razonable" : "requiere mas verificacion externa"}.`,
+    `Potencial ${asset.scores.potential}/100 frente a riesgo ${asset.scores.risk}/100.`,
+    `Valoracion: ${asset.valuationLabel}. No basta que algo sea bueno; tambien importa el precio.`,
+  ];
+
+  return {
+    label,
+    tone,
+    decision,
+    maxWeight: suggestedMaxWeight(score, asset.riskLevel),
+    technicalNotes,
+    fundamentalNotes,
+    mustConfirm: [
+      asset.sources[0] ? `Revisar fuente: ${asset.sources[0]}.` : "Contrastar con fuente externa actualizada.",
+      asset.improvementConditions[0] || "Identificar catalizador claro antes de aumentar peso.",
+      asset.worseningConditions[0] || "Definir condicion de descarte antes de actuar.",
+    ],
+    avoidIf: [
+      asset.cons[0] || "No entiendes el negocio/producto.",
+      asset.worseningConditions[0] || "La tesis principal se deteriora.",
+      "Necesitas ese dinero a corto plazo o no soportarias una caida fuerte.",
+    ],
+    isAligned,
+  };
+}
 
 export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ 
   asset, 
@@ -78,6 +178,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   const relevantRules = getRelevantKnowledgeRules(asset, allKnowledgeRules);
   const mData = { ...asset.marketData, ...historicalData };
   const valuationComfort = 100 - asset.scores.valuation;
+  const decisionGuide = buildDecisionGuide(asset, userProfile ?? null, mData);
 
   const copyEducationalBrief = async () => {
     const lines = [
@@ -102,6 +203,14 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
       "",
       "Condiciones a vigilar:",
       ...asset.worseningConditions.map(item => `- ${item}`),
+      "",
+      "Decision guiada personalizada:",
+      decisionGuide.label,
+      decisionGuide.decision,
+      `Peso maximo educativo orientativo: ${decisionGuide.maxWeight}`,
+      "",
+      "Datos a confirmar:",
+      ...decisionGuide.mustConfirm.map(item => `- ${item}`),
       "",
       "Nota: ficha educativa generada por Radar Inteligente de Inversion. No constituye asesoramiento financiero."
     ];
@@ -344,6 +453,63 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                   <p className="text-slate-300 leading-relaxed">{asset.summary}</p>
                   <div className="mt-4 p-4 bg-slate-800/30 rounded-xl border-l-4 border-sky-500 text-sm italic text-slate-300">
                     "{asset.radarReason}"
+                  </div>
+                </section>
+
+                <section className={`rounded-2xl border p-5 ${decisionGuide.tone}`}>
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                        <Target size={16} />
+                        Decision guiada personalizada
+                      </h3>
+                      <p className="mt-3 text-lg font-extrabold text-white">{decisionGuide.label}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-200">{decisionGuide.decision}</p>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-slate-950/40 p-4 min-w-[180px]">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Peso max. educativo</p>
+                      <p className="mt-1 text-xl font-extrabold text-white">{decisionGuide.maxWeight}</p>
+                      <p className="mt-1 text-[10px] text-slate-400">No es recomendacion; es limite de estudio.</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div className="rounded-xl border border-white/10 bg-slate-950/30 p-4">
+                      <h4 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-sky-300">
+                        <TrendingUp size={14} />
+                        Tecnico
+                      </h4>
+                      <ul className="space-y-2 text-xs leading-relaxed text-slate-300">
+                        {decisionGuide.technicalNotes.map((item) => <li key={item}>- {item}</li>)}
+                      </ul>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-slate-950/30 p-4">
+                      <h4 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-300">
+                        <ShieldCheck size={14} />
+                        Fundamental
+                      </h4>
+                      <ul className="space-y-2 text-xs leading-relaxed text-slate-300">
+                        {decisionGuide.fundamentalNotes.map((item) => <li key={item}>- {item}</li>)}
+                      </ul>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-slate-950/30 p-4">
+                      <h4 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-300">
+                        <ShieldAlert size={14} />
+                        Confirmar antes
+                      </h4>
+                      <ul className="space-y-2 text-xs leading-relaxed text-slate-300">
+                        {decisionGuide.mustConfirm.map((item) => <li key={item}>- {item}</li>)}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
+                    <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-rose-300">Descartar o no aumentar si...</h4>
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                      {decisionGuide.avoidIf.map((item) => (
+                        <p key={item} className="text-xs leading-relaxed text-slate-300">{item}</p>
+                      ))}
+                    </div>
                   </div>
                 </section>
 
