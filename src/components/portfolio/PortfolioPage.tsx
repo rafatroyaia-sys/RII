@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ProcessedAsset, AssetType, RiskLevel } from "../../types";
 import { Badge } from "../ui/Badge";
-import { Briefcase, Plus, Trash2, ShieldCheck, AlertTriangle, Download, Upload, Sparkles } from "lucide-react";
+import { Briefcase, Plus, Trash2, ShieldCheck, AlertTriangle, Download, Upload, Sparkles, Target, TrendingUp } from "lucide-react";
 
 interface PortfolioHolding {
   id: string;
@@ -14,6 +14,7 @@ interface PortfolioHolding {
 interface PortfolioPageProps {
   assets: ProcessedAsset[];
   onSelectAsset: (asset: ProcessedAsset) => void;
+  userProfile?: { score: number; name: string } | null;
 }
 
 const STORAGE_KEY = "rii_local_portfolio_v1";
@@ -86,7 +87,30 @@ function riskVariant(risk?: RiskLevel) {
   return "neutral";
 }
 
-export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAsset }) => {
+function profileTargets(score?: number | null) {
+  if (score === undefined || score === null) {
+    return {
+      coreMin: 60,
+      coreMax: 85,
+      highRiskMax: 15,
+      topWeightMax: 25,
+      label: "Completa el perfil para afinar estos rangos",
+    };
+  }
+  if (score <= 20) return { coreMin: 85, coreMax: 100, highRiskMax: 5, topWeightMax: 20, label: "Muy conservador" };
+  if (score <= 40) return { coreMin: 75, coreMax: 95, highRiskMax: 10, topWeightMax: 22, label: "Conservador" };
+  if (score <= 60) return { coreMin: 60, coreMax: 85, highRiskMax: 20, topWeightMax: 28, label: "Moderado" };
+  if (score <= 80) return { coreMin: 50, coreMax: 75, highRiskMax: 30, topWeightMax: 32, label: "Dinamico" };
+  return { coreMin: 40, coreMax: 70, highRiskMax: 40, topWeightMax: 35, label: "Agresivo" };
+}
+
+function statusTone(ok: boolean, warning = false) {
+  if (ok) return "border-emerald-500/25 bg-emerald-500/5 text-emerald-300";
+  if (warning) return "border-amber-500/25 bg-amber-500/5 text-amber-300";
+  return "border-rose-500/25 bg-rose-500/5 text-rose-300";
+}
+
+export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAsset, userProfile }) => {
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
   const [ticker, setTicker] = useState("");
   const [amount, setAmount] = useState("");
@@ -184,6 +208,45 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
 
     return result;
   }, [holdings.length, totals]);
+
+  const targets = useMemo(() => profileTargets(userProfile?.score), [userProfile?.score]);
+
+  const personalizedPortfolioActions = useMemo(() => {
+    const actions: string[] = [];
+
+    if (!holdings.length) {
+      return [
+        "Registra tu cartera o aplica una plantilla para recibir un diagnostico real.",
+        "Empieza por separar nucleo estable y satelites de oportunidad.",
+      ];
+    }
+
+    if (totals.corePct < targets.coreMin) {
+      actions.push(`Refuerza el nucleo: tu base ETF/defensiva esta en ${totals.corePct.toFixed(0)}% y para este perfil se sugiere ${targets.coreMin}-${targets.coreMax}%.`);
+    } else if (totals.corePct > targets.coreMax) {
+      actions.push("La cartera es muy defensiva para tu perfil. Puede ser correcto, pero revisa si limita demasiado el crecimiento esperado.");
+    } else {
+      actions.push("El peso de nucleo ETF/defensivo encaja razonablemente con tu perfil.");
+    }
+
+    if (totals.highRiskPct > targets.highRiskMax) {
+      actions.push(`Reduce o limita nuevas aportaciones a riesgo alto: estas en ${totals.highRiskPct.toFixed(0)}% y el maximo orientativo es ${targets.highRiskMax}%.`);
+    } else {
+      actions.push("La exposicion a riesgo alto/extremo esta dentro del rango educativo para tu perfil.");
+    }
+
+    if (totals.topWeight > targets.topWeightMax) {
+      actions.push(`Hay concentracion: tu mayor posicion pesa ${totals.topWeight.toFixed(0)}%. Antes de aumentar, exige una tesis muy clara.`);
+    } else {
+      actions.push("La concentracion por activo no supera el umbral educativo de tu perfil.");
+    }
+
+    if (totals.totalMonthly > 0) {
+      actions.push("Usa aportaciones mensuales para corregir desviaciones antes que vender por impulso.");
+    }
+
+    return actions;
+  }, [holdings.length, targets, totals]);
 
   const addHolding = () => {
     const cleanTicker = ticker.trim().toUpperCase();
@@ -325,6 +388,52 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
             <p className={`text-xl font-bold mt-1 ${Math.abs(totals.targetPct - 100) <= 1 ? "text-emerald-400" : "text-sky-400"}`}>
               {totals.targetPct.toFixed(0)}%
             </p>
+          </div>
+        </div>
+
+        <div className="mb-6 rounded-xl border border-sky-500/20 bg-sky-500/[0.04] p-4">
+          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-sky-400">
+                <Target size={18} />
+                <h3 className="text-sm font-bold uppercase tracking-widest">Diagnostico personalizado de cartera</h3>
+              </div>
+              <p className="mt-1 text-sm text-slate-400">
+                {userProfile
+                  ? `Rangos educativos calculados para perfil ${userProfile.name} (${userProfile.score}/100).`
+                  : "Sin perfil guardado: se usan rangos prudentes hasta completar el test."}
+              </p>
+            </div>
+            <div className="rounded-lg border border-slate-700 bg-slate-950/50 px-3 py-2 text-xs text-slate-300">
+              Perfil base: <strong className="text-white">{targets.label}</strong>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className={`rounded-xl border p-4 ${statusTone(totals.corePct >= targets.coreMin && totals.corePct <= targets.coreMax, totals.corePct < targets.coreMin)}`}>
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Nucleo ETF/defensivo</p>
+              <p className="mt-1 text-2xl font-extrabold text-white">{totals.corePct.toFixed(0)}%</p>
+              <p className="mt-1 text-xs">Objetivo educativo: {targets.coreMin}-{targets.coreMax}%</p>
+            </div>
+            <div className={`rounded-xl border p-4 ${statusTone(totals.highRiskPct <= targets.highRiskMax, totals.highRiskPct <= targets.highRiskMax + 10)}`}>
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Riesgo alto/extremo</p>
+              <p className="mt-1 text-2xl font-extrabold text-white">{totals.highRiskPct.toFixed(0)}%</p>
+              <p className="mt-1 text-xs">Maximo orientativo: {targets.highRiskMax}%</p>
+            </div>
+            <div className={`rounded-xl border p-4 ${statusTone(totals.topWeight <= targets.topWeightMax, totals.topWeight <= targets.topWeightMax + 8)}`}>
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Mayor posicion</p>
+              <p className="mt-1 text-2xl font-extrabold text-white">{totals.topWeight.toFixed(0)}%</p>
+              <p className="mt-1 text-xs">Umbral de concentracion: {targets.topWeightMax}%</p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {personalizedPortfolioActions.map((action, index) => (
+              <div key={action} className="flex items-start gap-3 rounded-lg border border-slate-800 bg-slate-950/50 p-3">
+                {index === 0 ? <TrendingUp size={16} className="mt-0.5 text-emerald-400" /> : <ShieldCheck size={16} className="mt-0.5 text-sky-400" />}
+                <p className="text-xs leading-relaxed text-slate-300">{action}</p>
+              </div>
+            ))}
           </div>
         </div>
 

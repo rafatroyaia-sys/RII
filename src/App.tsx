@@ -500,7 +500,7 @@ export default function App() {
 
         {/* Portfolio Tab */}
         {activeTab === 'portfolio' && (
-          <PortfolioPage assets={allProcessedAssets} onSelectAsset={setSelectedAsset} />
+          <PortfolioPage assets={allProcessedAssets} onSelectAsset={setSelectedAsset} userProfile={userProfile} />
         )}
 
         {/* Education Tab */}
