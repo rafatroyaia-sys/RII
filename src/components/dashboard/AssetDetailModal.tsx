@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { allKnowledgeRules } from "../../data/knowledgeRules";
 import { getRelevantKnowledgeRules } from "../../logic/knowledgeMatcher";
 import { assetMappings } from "../../data/assetMappings";
-import { fetchAlphaVantageHistorical } from "../../services/marketDataService";
+import { fetchMarketHistorical } from "../../services/marketDataService";
 
 interface AssetDetailModalProps {
   asset: ProcessedAsset | null;
@@ -63,7 +63,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
       const mapping = assetMappings[asset.ticker];
       if (mapping?.enabledForRealMarketData) {
         setIsLoadingHistory(true);
-        fetchAlphaVantageHistorical(asset.ticker).then(data => {
+        fetchMarketHistorical(asset.ticker).then(data => {
           setHistoricalData(data);
           setIsLoadingHistory(false);
         }).catch(() => {

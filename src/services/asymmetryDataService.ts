@@ -62,6 +62,14 @@ function writeCache(data: AsymmetryDataResponse): void {
   }
 }
 
+function rememberProviderStatus(message: string): void {
+  try {
+    sessionStorage.setItem("asymmetry_provider_last_status", message);
+  } catch {
+    /* sessionStorage no disponible: ignorar */
+  }
+}
+
 /**
  * Obtiene las empresas del Radar de Asimetría.
  * @param forceRefresh si es true, ignora la caché y vuelve a llamar al backend.
@@ -73,6 +81,7 @@ export async function fetchAsymmetryCompanies(
   if (!forceRefresh) {
     const cached = readCache();
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      rememberProviderStatus("Datos EODHD servidos desde cache local reciente.");
       return { ...cached.data, fromCache: true };
     }
   }
@@ -85,9 +94,11 @@ export async function fetchAsymmetryCompanies(
       const data = (await res.json()) as AsymmetryDataResponse;
       // Backend sin datos reales (sin key / error) → mock
       if (!data || !Array.isArray(data.companies) || data.companies.length === 0) {
+        rememberProviderStatus(data?.note || "Backend de EODHD sin datos reales; usando mock.");
         return { ...mockResponse(data?.note), fromCache: false };
       }
       writeCache(data);
+      rememberProviderStatus(data.source === "real" ? "Datos reales EODHD recibidos correctamente." : "Backend respondio con fallback educativo.");
       return { ...data, fromCache: false };
     }
   } catch {
@@ -95,6 +106,7 @@ export async function fetchAsymmetryCompanies(
   }
 
   // 3) Fallback final: mock
+  rememberProviderStatus("No se pudo contactar con EODHD; usando datos mock.");
   return { ...mockResponse("No se pudo contactar con el backend; usando datos mock."), fromCache: false };
 }
 

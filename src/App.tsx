@@ -9,7 +9,7 @@ import { mockMentors, KNOWLEDGE_DISCLAIMER } from './data/mockKnowledge';
 import { processAssets } from './logic/scoringEngine';
 import { buildOpportunityCandidates } from './logic/opportunityRadar';
 import { ProcessedAsset, AssetType, Horizon, RiskLevel, MarketData, MacroIndicator, DataQuality } from './types';
-import { fetchAlphaVantageHistorical, fetchManyMarketData } from './services/marketDataService';
+import { fetchMarketHistorical, fetchManyMarketData } from './services/marketDataService';
 import { fetchMacroIndicators } from './services/macroDataService';
 import { enrichAssetsWithMarketData } from './logic/enrichAssets';
 import { assetMappings } from './data/assetMappings';
@@ -19,6 +19,7 @@ import { WarningBanner } from './components/ui/WarningBanner';
 import { SectionCard } from './components/ui/SectionCard';
 import { DataStatusBanner } from './components/data/DataStatusBanner';
 import { DataDiagnosticsPanel } from './components/data/DataDiagnosticsPanel';
+import { ProviderHealthPanel } from './components/data/ProviderHealthPanel';
 
 // Dashboard Components
 import { SummaryCards } from './components/dashboard/SummaryCards';
@@ -190,7 +191,7 @@ export default function App() {
 
       const marketWithHistorical = { ...market };
       for (const ticker of opportunityTickers) {
-        const historical = await fetchAlphaVantageHistorical(ticker, false, forceRefresh);
+        const historical = await fetchMarketHistorical(ticker, false, forceRefresh);
         marketWithHistorical[ticker] = {
           ...marketWithHistorical[ticker],
           ...historical
@@ -463,6 +464,7 @@ export default function App() {
             </div>
             
             <MethodologyPanel />
+            <ProviderHealthPanel quality={dataQuality} marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
             <DataDiagnosticsPanel marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
             <SummaryCards assets={allProcessedAssets} />
           </div>

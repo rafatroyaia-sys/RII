@@ -244,7 +244,7 @@ export async function fetchManyMarketData(tickers: string[], forceRefresh: boole
   return result;
 }
 
-export async function fetchAlphaVantageHistorical(ticker: string, preventRealApiCall: boolean = false, forceRefresh: boolean = false): Promise<Partial<MarketData>> {
+export async function fetchMarketHistorical(ticker: string, preventRealApiCall: boolean = false, forceRefresh: boolean = false): Promise<Partial<MarketData>> {
   const mapping = assetMappings[ticker];
   if (!mapping) {
     return { historicalStatus: 'not_available', historicalReason: 'Activo no mapeado' };
@@ -319,3 +319,5 @@ export async function fetchAlphaVantageHistorical(ticker: string, preventRealApi
     return { historicalStatus: 'error', historicalReason: err.message || 'Límite o error de red.' };
   }
 }
+
+export const fetchAlphaVantageHistorical = fetchMarketHistorical;

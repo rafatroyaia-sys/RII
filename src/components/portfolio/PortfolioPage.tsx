@@ -18,7 +18,18 @@ interface PortfolioPageProps {
 
 const STORAGE_KEY = "rii_local_portfolio_v1";
 
-const PORTFOLIO_TEMPLATES = [
+interface PortfolioTemplateHolding {
+  ticker: string;
+  targetWeight: number;
+}
+
+interface PortfolioTemplate {
+  name: string;
+  description: string;
+  holdings: PortfolioTemplateHolding[];
+}
+
+const PORTFOLIO_TEMPLATES: PortfolioTemplate[] = [
   {
     name: "Indexada prudente",
     description: "Base global, liquidez y bonos cortos.",
@@ -242,9 +253,11 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ assets, onSelectAs
     }
   };
 
-  const applyTemplate = (template: typeof PORTFOLIO_TEMPLATES[number]) => {
+  const applyTemplate = (template: PortfolioTemplate) => {
     setHoldings((current) => {
-      const byTicker = new Map(current.map((holding) => [holding.ticker.toUpperCase(), holding]));
+      const byTicker = new Map<string, PortfolioHolding>(
+        current.map((holding) => [holding.ticker.toUpperCase(), holding])
+      );
       template.holdings.forEach((item) => {
         const key = item.ticker.toUpperCase();
         const existing = byTicker.get(key);
