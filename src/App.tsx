@@ -59,10 +59,56 @@ import {
   Globe,
   BookOpen,
   Crosshair,
-  Briefcase
+  Briefcase,
+  Database,
+  Scale,
+  ShieldCheck
 } from 'lucide-react';
 
 const OPPORTUNITY_HISTORICAL_LIMIT = 14;
+
+const MethodologyPanel: React.FC = () => {
+  const items = [
+    {
+      icon: <Scale size={18} />,
+      title: "Puntuación educativa",
+      text: "Combina potencial, riesgo, confianza, valoración, horizonte y facilidad para principiantes. Ordena ideas para estudiar, no órdenes de compra."
+    },
+    {
+      icon: <Database size={18} />,
+      title: "Datos trazables",
+      text: "Cuando hay API disponible usa datos reales o caché; si no, muestra simulación educativa y lo indica de forma visible."
+    },
+    {
+      icon: <ShieldCheck size={18} />,
+      title: "Guardarraíles",
+      text: "Prioriza advertencias, perfil de riesgo, diversificación y condiciones que invalidarían una tesis antes de hablar de rentabilidad."
+    }
+  ];
+
+  return (
+    <SectionCard
+      title="Cómo se calcula el radar"
+      subtitle="Resumen simple de la metodología para interpretar las puntuaciones"
+      icon={<Info size={18} />}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {items.map(item => (
+          <div key={item.title} className="bg-slate-950/60 border border-slate-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 text-emerald-400 mb-2">
+              {item.icon}
+              <h4 className="font-bold text-slate-100">{item.title}</h4>
+            </div>
+            <p className="text-sm text-slate-400 leading-relaxed">{item.text}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-100">
+        El radar sirve para priorizar estudio y vigilancia. Antes de invertir conviene revisar fuente, fecha, liquidez, fiscalidad, costes, horizonte y concentración de cartera.
+      </div>
+    </SectionCard>
+  );
+};
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'portfolio' | 'calculator' | 'radar' | 'asimetria' | 'macro' | 'education'>('home');
@@ -303,22 +349,22 @@ export default function App() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
         
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
+        <header className="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-400">
-                <Radar size={32} />
+              <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-400 shrink-0">
+                <Radar className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
-              <h1 className="text-4xl font-extrabold text-white tracking-tight">
+              <h1 className="text-[2rem] leading-[1.05] sm:text-4xl sm:leading-tight font-extrabold text-white tracking-tight">
                 RADAR <span className="text-emerald-400">INTELIGENTE</span> DE INVERSIÓN
               </h1>
             </div>
-            <p className="text-slate-400 mt-2 font-medium">Oportunidades, riesgos y tendencias explicadas fácil para principiantes</p>
+            <p className="text-slate-400 mt-3 sm:mt-2 font-medium text-base sm:text-lg max-w-3xl">Oportunidades, riesgos y tendencias explicadas fácil para principiantes</p>
           </div>
-          <div className="text-right flex flex-col items-end gap-2">
+          <div className="text-left md:text-right flex flex-col items-start md:items-end gap-2">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-slate-900 border border-white/5 py-1 px-3 rounded-full">
               Actualizado: {lastUpdateDate}
             </span>
@@ -341,7 +387,7 @@ export default function App() {
         <DataStatusBanner quality={dataQuality} isRefreshing={isRefreshing} />
         
         {/* Navigation Tabs */}
-        <div className="flex overflow-x-auto whitespace-nowrap gap-2 mb-8 -mx-4 sm:mx-0 px-4 sm:px-2 py-2 bg-slate-900 border-y sm:border border-slate-800 sm:rounded-2xl sticky top-3 z-40 shadow-xl shadow-slate-950/50 [&::-webkit-scrollbar]:hidden">
+        <div className="flex overflow-x-auto whitespace-nowrap gap-2 mb-8 -mx-4 sm:mx-0 px-4 sm:px-2 py-2 bg-slate-900 border-y sm:border border-slate-800 sm:rounded-2xl sticky top-0 sm:top-3 z-40 shadow-xl shadow-slate-950/50 [&::-webkit-scrollbar]:hidden">
           <button onClick={() => setActiveTab('home')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'home' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Home size={16}/> Inicio</button>
           <button onClick={() => setActiveTab('profile')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'profile' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><UserCheck size={16}/> <span className="hidden sm:inline">Mi Perfil Inversor</span><span className="sm:hidden">Perfil</span></button>
           <button onClick={() => setActiveTab('portfolio')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'portfolio' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Briefcase size={16}/> <span className="hidden sm:inline">Mi Cartera</span><span className="sm:hidden">Cartera</span></button>
@@ -355,7 +401,7 @@ export default function App() {
         {/* Home Tab */}
         {activeTab === 'home' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-slate-900 border border-emerald-500/30 p-8 rounded-3xl shadow-[0_0_40px_-10px_rgba(16,185,129,0.15)]">
+            <div className="bg-slate-900 border border-emerald-500/30 p-6 sm:p-8 rounded-3xl shadow-[0_0_40px_-10px_rgba(16,185,129,0.15)]">
               <h2 className="text-3xl font-extrabold text-white mb-4">Bienvenido al Radar Inteligente</h2>
               <p className="text-slate-300 text-lg mb-6 max-w-3xl leading-relaxed">
                 Esta es una <strong>herramienta educativa</strong> diseñada para ayudarte a entender cómo funcionan los mercados, cómo evaluar el riesgo y cómo se comporta el interés compuesto. <br/><br/>
@@ -416,6 +462,7 @@ export default function App() {
               </div>
             </div>
             
+            <MethodologyPanel />
             <DataDiagnosticsPanel marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
             <SummaryCards assets={allProcessedAssets} />
           </div>

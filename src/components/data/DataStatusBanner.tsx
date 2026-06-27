@@ -47,7 +47,7 @@ export const DataStatusBanner: React.FC<DataStatusBannerProps> = ({ quality, isR
           Datos Macro: <strong>{statusTranslations[quality.macroDataStatus] || quality.macroDataStatus}</strong>
         </span>
       </div>
-      <div className="text-xs opacity-80 w-full lg:w-auto mt-2 lg:mt-0 flex flex-col gap-1">
+      <div className="hidden sm:flex text-xs opacity-80 w-full lg:w-auto mt-2 lg:mt-0 flex-col gap-1">
         {quality.isMarketRateLimited ? (
           <span className="text-amber-300">
             El proveedor de mercado (Yahoo Finance u otro) está limitando temporalmente las consultas o presenta errores. Se están utilizando datos en caché o simulados para mantener la experiencia educativa.
