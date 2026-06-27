@@ -467,6 +467,7 @@ export default function App() {
             <FinancialPlanPanel
               assets={allProcessedAssets}
               opportunityCandidates={opportunityCandidates}
+              macroIndicators={macroIndicators}
               userProfile={userProfile}
               onGoProfile={() => setActiveTab('profile')}
               onGoPortfolio={() => setActiveTab('portfolio')}

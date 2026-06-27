@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BookOpenCheck, Briefcase, ClipboardCheck, Copy, Download, Radar, Route, UserCheck } from "lucide-react";
-import { ProcessedAsset, RiskLevel } from "../../types";
+import { Activity, BarChart3, BookOpenCheck, Briefcase, ClipboardCheck, Copy, Download, Gauge, Radar, Route, UserCheck } from "lucide-react";
+import { MacroIndicator, ProcessedAsset, RiskLevel } from "../../types";
 import { OpportunityCandidate } from "../../logic/opportunityRadar";
 
 interface FinancialPlanPanelProps {
   assets: ProcessedAsset[];
   opportunityCandidates: OpportunityCandidate[];
+  macroIndicators: MacroIndicator[];
   userProfile: { score: number; name: string } | null;
   onGoProfile: () => void;
   onGoPortfolio: () => void;
@@ -20,7 +21,21 @@ interface StoredHolding {
   targetWeight?: number;
 }
 
+interface ProfileAnswer {
+  topic: string;
+  question: string;
+  answer: string;
+  points: number;
+}
+
+interface StoredProfile {
+  score: number;
+  date: string;
+  answers?: ProfileAnswer[];
+}
+
 const PORTFOLIO_STORAGE_KEY = "rii_local_portfolio_v1";
+const PROFILE_STORAGE_KEY = "investor_profile_score";
 
 function formatEuro(value: number) {
   return new Intl.NumberFormat("es-ES", {
@@ -54,9 +69,66 @@ function readStoredHoldings(): StoredHolding[] {
   }
 }
 
+function readStoredProfile(): StoredProfile | null {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredProfile;
+    if (typeof parsed?.score !== "number") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function answerFor(profile: StoredProfile | null, topic: string) {
+  return profile?.answers?.find((answer) => answer.topic === topic)?.answer || null;
+}
+
+function allocationGuide(score: number | null) {
+  if (score === null) {
+    return { equity: "Pendiente", core: "Completar perfil", satellite: "0-10%", maxHighRisk: "Pendiente" };
+  }
+  if (score <= 20) return { equity: "0-20%", core: "80-100%", satellite: "0-5%", maxHighRisk: "0-5%" };
+  if (score <= 40) return { equity: "20-40%", core: "70-90%", satellite: "0-10%", maxHighRisk: "5-10%" };
+  if (score <= 60) return { equity: "40-65%", core: "60-80%", satellite: "5-15%", maxHighRisk: "10-20%" };
+  if (score <= 80) return { equity: "65-85%", core: "50-70%", satellite: "10-25%", maxHighRisk: "20-30%" };
+  return { equity: "80-100%", core: "40-60%", satellite: "15-35%", maxHighRisk: "30-40%" };
+}
+
+function macroValue(indicators: MacroIndicator[], id: string) {
+  return indicators.find((indicator) => indicator.id === id)?.value ?? null;
+}
+
+function buildMacroReading(indicators: MacroIndicator[]) {
+  const fed = macroValue(indicators, "FEDFUNDS");
+  const cpi = macroValue(indicators, "CPIAUCSL");
+  const unrate = macroValue(indicators, "UNRATE");
+  const us10y = macroValue(indicators, "GS10");
+  const cautions = [
+    fed !== null && fed >= 5 ? "Tipos Fed altos: conviene exigir margen de seguridad y evitar euforia en growth caro." : null,
+    us10y !== null && us10y >= 4.5 ? "Bono US 10Y exigente: las valoraciones elevadas tienen menos perdon." : null,
+    unrate !== null && unrate >= 5 ? "Paro deteriorandose: vigilar riesgo de ciclo y beneficios empresariales." : null,
+  ].filter(Boolean) as string[];
+
+  return {
+    label: cautions.length >= 2 ? "Cautela macro" : cautions.length === 1 ? "Entorno mixto" : "Sin alarma macro clara",
+    notes: cautions.length ? cautions : [
+      "No hay senales macro extremas en los indicadores cargados; aun asi, la decision debe depender del activo, precio y horizonte.",
+    ],
+    raw: {
+      fed,
+      cpi,
+      unrate,
+      us10y,
+    },
+  };
+}
+
 export const FinancialPlanPanel: React.FC<FinancialPlanPanelProps> = ({
   assets,
   opportunityCandidates,
+  macroIndicators,
   userProfile,
   onGoProfile,
   onGoPortfolio,
@@ -64,10 +136,14 @@ export const FinancialPlanPanel: React.FC<FinancialPlanPanelProps> = ({
   onGoEducation,
 }) => {
   const [holdings, setHoldings] = useState<StoredHolding[]>([]);
+  const [profileDetails, setProfileDetails] = useState<StoredProfile | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const refresh = () => setHoldings(readStoredHoldings());
+    const refresh = () => {
+      setHoldings(readStoredHoldings());
+      setProfileDetails(readStoredProfile());
+    };
     refresh();
     window.addEventListener("storage", refresh);
     window.addEventListener("focus", refresh);
@@ -80,6 +156,10 @@ export const FinancialPlanPanel: React.FC<FinancialPlanPanelProps> = ({
   const assetByTicker = useMemo(
     () => new Map(assets.map((asset) => [asset.ticker.toUpperCase(), asset])),
     [assets]
+  );
+  const candidateByTicker = useMemo(
+    () => new Map(opportunityCandidates.map((candidate) => [candidate.asset.ticker.toUpperCase(), candidate])),
+    [opportunityCandidates]
   );
 
   const plan = useMemo(() => {
@@ -109,8 +189,64 @@ export const FinancialPlanPanel: React.FC<FinancialPlanPanelProps> = ({
       highRiskPct: totalAmount > 0 ? (highRiskAmount / totalAmount) * 100 : 0,
       watchlist,
       matchedHoldings,
+      macro: buildMacroReading(macroIndicators),
     };
-  }, [assetByTicker, holdings, opportunityCandidates]);
+  }, [assetByTicker, holdings, macroIndicators, opportunityCandidates]);
+
+  const score = userProfile?.score ?? profileDetails?.score ?? null;
+  const guide = allocationGuide(score);
+  const ageAnswer = answerFor(profileDetails, "age");
+  const horizonAnswer = answerFor(profileDetails, "horizon");
+  const incomeAnswer = answerFor(profileDetails, "incomeStability");
+  const emergencyAnswer = answerFor(profileDetails, "emergencyFund");
+
+  const personalizedAdvice = useMemo(() => {
+    const items: string[] = [];
+    if (score === null) {
+      items.push("Completa el perfil para convertir este plan en una guia personalizada.");
+    } else if (score <= 40) {
+      items.push("Prioridad: proteger capital, evitar concentracion y usar aportaciones graduales.");
+    } else if (score <= 60) {
+      items.push("Prioridad: equilibrio. Base diversificada primero; acciones individuales como complemento pequeno.");
+    } else {
+      items.push("Prioridad: crecimiento con control. Puedes estudiar mas riesgo, pero con limites de peso y tesis invalidada.");
+    }
+
+    if (plan.totalMonthly > 0) {
+      items.push(`Aportacion mensual detectada: ${formatEuro(plan.totalMonthly)}. Usala para rebalancear antes que hacer cambios bruscos.`);
+    } else {
+      items.push("Sin aportacion mensual registrada: el plan sera mas estable si defines una cantidad periodica realista.");
+    }
+
+    if (plan.highRiskPct > 0 && score !== null) {
+      const highRiskWarning = score <= 40 && plan.highRiskPct > 10
+        ? "La exposicion a riesgo alto parece elevada para tu perfil."
+        : score <= 60 && plan.highRiskPct > 20
+          ? "La exposicion a riesgo alto empieza a ser relevante para un perfil moderado."
+          : null;
+      if (highRiskWarning) items.push(highRiskWarning);
+    }
+
+    if (emergencyAnswer && emergencyAnswer.toLowerCase().includes("no tengo")) {
+      items.push("Antes de invertir agresivamente, crea fondo de emergencia: evita vender inversiones en mal momento.");
+    }
+
+    const ageText = (ageAnswer || "").toLowerCase();
+    if (ageText.includes("mas de 60") || ageText.includes("45 y 60")) {
+      items.push("Por edad declarada, el plan debe dar mas peso a preservacion, liquidez y evitar caidas dificiles de recuperar.");
+    } else if (ageText.includes("menos de 30") || ageText.includes("30 y 45")) {
+      items.push("Por edad/horizonte, puedes aprender a usar volatilidad a tu favor, pero sin saltarte diversificacion.");
+    }
+
+    const horizonText = (horizonAnswer || "").toLowerCase();
+    if (horizonText.includes("menos de 2")) {
+      items.push("Horizonte corto: no uses el radar agresivo para dinero que puedas necesitar pronto.");
+    } else if (horizonText.includes("10")) {
+      items.push("Horizonte largo: prioriza aportaciones periodicas y tesis robustas frente a ruido mensual.");
+    }
+
+    return items;
+  }, [ageAnswer, emergencyAnswer, horizonAnswer, plan.highRiskPct, plan.totalMonthly, score]);
 
   const report = useMemo(() => {
     const lines = [
@@ -122,6 +258,16 @@ export const FinancialPlanPanel: React.FC<FinancialPlanPanelProps> = ({
       userProfile
         ? `Perfil registrado: ${userProfile.name} (${userProfile.score}/100).`
         : "Perfil pendiente: completar el test antes de interpretar riesgos.",
+      `Edad declarada: ${ageAnswer || "pendiente"}.`,
+      `Horizonte: ${horizonAnswer || "pendiente"}.`,
+      `Ingresos: ${incomeAnswer || "pendiente"}.`,
+      `Fondo de emergencia: ${emergencyAnswer || "pendiente"}.`,
+      "",
+      "## Guia de asignacion educativa",
+      `Renta variable orientativa: ${guide.equity}.`,
+      `Base nucleo ETF/defensiva: ${guide.core}.`,
+      `Satelites tacticos: ${guide.satellite}.`,
+      `Riesgo alto/extremo maximo orientativo: ${guide.maxHighRisk}.`,
       "",
       "## Cartera local",
       `Valor registrado: ${formatEuro(plan.totalAmount)}.`,
@@ -140,6 +286,13 @@ export const FinancialPlanPanel: React.FC<FinancialPlanPanelProps> = ({
         `${index + 1}. ${asset.ticker} - ${asset.name}: score ${asset.opportunityScore}/100, riesgo ${asset.riskLevel}, horizonte ${asset.recommendedHorizon}.`
       )),
       "",
+      "## Lectura macro",
+      `Estado: ${plan.macro.label}.`,
+      ...plan.macro.notes.map((note) => `- ${note}`),
+      "",
+      "## Reglas personalizadas",
+      ...personalizedAdvice.map((item) => `- ${item}`),
+      "",
       "## Rutina semanal sugerida",
       "- Revisar si ha cambiado el dato macro o el estado de proveedor.",
       "- Leer ficha de 1 activo del radar, sin comprar por impulso.",
@@ -149,7 +302,7 @@ export const FinancialPlanPanel: React.FC<FinancialPlanPanelProps> = ({
       "Nota: documento educativo. No constituye asesoramiento financiero.",
     ];
     return lines.join("\n");
-  }, [plan, userProfile]);
+  }, [ageAnswer, emergencyAnswer, guide, horizonAnswer, incomeAnswer, personalizedAdvice, plan, userProfile]);
 
   const copyReport = async () => {
     try {
@@ -253,6 +406,109 @@ export const FinancialPlanPanel: React.FC<FinancialPlanPanelProps> = ({
             </button>
           </article>
         ))}
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+          <div className="mb-3 flex items-center gap-2 text-sky-400">
+            <Gauge size={18} />
+            <h3 className="font-bold text-slate-100">Asignacion orientativa por perfil</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ["Renta variable", guide.equity],
+              ["Nucleo", guide.core],
+              ["Satelites", guide.satellite],
+              ["Riesgo alto", guide.maxHighRisk],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
+                <p className="mt-1 text-lg font-extrabold text-white">{value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2">
+            {personalizedAdvice.map((item) => (
+              <p key={item} className="rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-3 py-2 text-xs leading-relaxed text-emerald-100">
+                {item}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+          <div className="mb-3 flex items-center gap-2 text-amber-400">
+            <Activity size={18} />
+            <h3 className="font-bold text-slate-100">Macro traducida</h3>
+          </div>
+          <p className="text-sm font-bold text-white">{plan.macro.label}</p>
+          <div className="mt-3 space-y-2">
+            {plan.macro.notes.map((note) => (
+              <p key={note} className="text-xs leading-relaxed text-slate-300">{note}</p>
+            ))}
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] text-slate-400">
+            <span>Fed: {plan.macro.raw.fed ?? "--"}</span>
+            <span>CPI: {plan.macro.raw.cpi ?? "--"}</span>
+            <span>Paro: {plan.macro.raw.unrate ?? "--"}</span>
+            <span>US 10Y: {plan.macro.raw.us10y ?? "--"}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+        <div className="mb-3 flex items-center gap-2 text-violet-400">
+          <BarChart3 size={18} />
+          <h3 className="font-bold text-slate-100">Como interpretar los numeros del radar</h3>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {plan.watchlist.slice(0, 3).map((asset) => (
+            <article key={asset.id} className="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-bold text-white">{asset.ticker}</p>
+                <span className="font-mono text-sm font-bold text-emerald-400">{asset.opportunityScore}/100</span>
+              </div>
+              <p className="mt-1 text-[11px] text-slate-500">{asset.name}</p>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                <div>
+                  <dt className="text-slate-500">Riesgo</dt>
+                  <dd className="font-bold text-amber-300">{asset.scores.risk}/100</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Confianza</dt>
+                  <dd className="font-bold text-sky-300">{asset.scores.trust}/100</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Potencial</dt>
+                  <dd className="font-bold text-emerald-300">{asset.scores.potential}/100</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Valoracion</dt>
+                  <dd className="font-bold text-violet-300">{asset.valuationLabel}</dd>
+                </div>
+              </dl>
+              <p className="mt-3 text-xs leading-relaxed text-slate-300">
+                {asset.scores.risk > (score ?? 50)
+                  ? "Para tu perfil, tratala como idea de estudio o posicion pequena."
+                  : "Encaja mejor con tu tolerancia, pero exige validar fuente y tesis."}
+              </p>
+              {candidateByTicker.get(asset.ticker)?.evidence.length ? (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {candidateByTicker.get(asset.ticker)?.evidence.slice(0, 3).map((item) => (
+                    <span key={item} className="rounded-md bg-slate-950 px-2 py-1 text-[10px] text-slate-400">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              {candidateByTicker.get(asset.ticker)?.setup && (
+                <p className="mt-2 text-[11px] text-sky-300">
+                  Tecnico: {candidateByTicker.get(asset.ticker)?.setup}
+                </p>
+              )}
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

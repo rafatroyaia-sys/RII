@@ -130,11 +130,36 @@ const QUESTIONS = [
   }
 ];
 
+const PROFILE_TOPICS = [
+  "age",
+  "horizon",
+  "drawdownReaction",
+  "knowledge",
+  "wealthShare",
+  "incomeStability",
+  "objective",
+  "lossTolerance",
+  "securityVsReturn",
+  "leverage",
+  "scamAwareness",
+  "productPreference",
+  "emergencyFund",
+  "mentorStyle",
+] as const;
+
+interface ProfileAnswer {
+  topic: typeof PROFILE_TOPICS[number];
+  question: string;
+  answer: string;
+  points: number;
+}
+
 export const InvestorProfileTest: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  const [savedResult, setSavedResult] = useState<{score: number, date: string} | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<ProfileAnswer[]>([]);
+  const [savedResult, setSavedResult] = useState<{score: number, date: string, answers?: ProfileAnswer[]} | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('investor_profile_score');
@@ -145,24 +170,35 @@ export const InvestorProfileTest: React.FC = () => {
     }
   }, []);
 
-  const handleAnswer = (points: number) => {
+  const handleAnswer = (points: number, answerText: string) => {
     const newScore = score + points;
+    const nextAnswers = [
+      ...selectedAnswers,
+      {
+        topic: PROFILE_TOPICS[currentQuestion],
+        question: QUESTIONS[currentQuestion].question,
+        answer: answerText,
+        points,
+      },
+    ];
+    setSelectedAnswers(nextAnswers);
+
     if (currentQuestion < QUESTIONS.length - 1) {
       setScore(newScore);
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      finishTest(newScore);
+      finishTest(newScore, nextAnswers);
     }
   };
 
-  const finishTest = (finalScore: number) => {
+  const finishTest = (finalScore: number, answers: ProfileAnswer[]) => {
     const maxPoints = QUESTIONS.reduce((acc, q) => acc + Math.max(...q.options.map(o => o.points)), 0);
     const normalizedScore = Math.min(100, Math.round((finalScore / maxPoints) * 100));
     
     setScore(normalizedScore);
     setIsFinished(true);
     
-    const resultToSave = { score: normalizedScore, date: new Date().toISOString() };
+    const resultToSave = { score: normalizedScore, date: new Date().toISOString(), answers };
     localStorage.setItem('investor_profile_score', JSON.stringify(resultToSave));
     window.dispatchEvent(new Event('storage'));
     setSavedResult(resultToSave);
@@ -172,6 +208,7 @@ export const InvestorProfileTest: React.FC = () => {
     setCurrentQuestion(0);
     setScore(0);
     setIsFinished(false);
+    setSelectedAnswers([]);
   };
 
   const getProfileInfo = (s: number) => {
@@ -322,7 +359,7 @@ export const InvestorProfileTest: React.FC = () => {
         {question.options.map((opt, idx) => (
           <button
             key={idx}
-            onClick={() => handleAnswer(opt.points)}
+            onClick={() => handleAnswer(opt.points, opt.text)}
             className="w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-800/40 hover:bg-slate-800 hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all text-slate-200 group"
           >
             <div className="flex items-start gap-4">
