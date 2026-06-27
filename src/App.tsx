@@ -20,6 +20,7 @@ import { SectionCard } from './components/ui/SectionCard';
 import { DataStatusBanner } from './components/data/DataStatusBanner';
 import { DataDiagnosticsPanel } from './components/data/DataDiagnosticsPanel';
 import { ProviderHealthPanel } from './components/data/ProviderHealthPanel';
+import { FinancialPlanPanel } from './components/planning/FinancialPlanPanel';
 
 // Dashboard Components
 import { SummaryCards } from './components/dashboard/SummaryCards';
@@ -463,6 +464,15 @@ export default function App() {
               </div>
             </div>
             
+            <FinancialPlanPanel
+              assets={allProcessedAssets}
+              opportunityCandidates={opportunityCandidates}
+              userProfile={userProfile}
+              onGoProfile={() => setActiveTab('profile')}
+              onGoPortfolio={() => setActiveTab('portfolio')}
+              onGoRadar={() => setActiveTab('radar')}
+              onGoEducation={() => setActiveTab('education')}
+            />
             <MethodologyPanel />
             <ProviderHealthPanel quality={dataQuality} marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
             <DataDiagnosticsPanel marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
