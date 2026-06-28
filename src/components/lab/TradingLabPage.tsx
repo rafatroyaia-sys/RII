@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { ProcessedAsset, RiskLevel } from "../../types";
 import { SectionCard } from "../ui/SectionCard";
+import { ThesisBuilderPanel } from "./ThesisBuilderPanel";
 
 type LabStrategyId = "quality" | "pullback" | "momentum";
 
@@ -339,6 +340,14 @@ export const TradingLabPage: React.FC<TradingLabPageProps> = ({ assets, userProf
                 </tbody>
               </table>
             </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Tesis antes de actuar"
+            subtitle="Escribe la idea, sus riesgos y la condicion que la invalidaria"
+            icon={<ClipboardList size={18} />}
+          >
+            <ThesisBuilderPanel assets={assets} onSelectAsset={onSelectAsset} />
           </SectionCard>
         </div>
       </div>
