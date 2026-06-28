@@ -39,6 +39,7 @@ import { InvestmentDriversPanel } from './components/education/InvestmentDrivers
 import { MacroScenarioPanel } from './components/education/MacroScenarioPanel';
 import { InvestorRoutinePanel } from './components/education/InvestorRoutinePanel';
 import { InvestmentGlossaryPanel } from './components/education/InvestmentGlossaryPanel';
+import { MethodologyTrustPanel } from './components/education/MethodologyTrustPanel';
 
 // Radar de Asimetría
 import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
@@ -490,7 +491,7 @@ export default function App() {
               onGoRadar={() => setActiveTab('radar')}
               onGoEducation={() => setActiveTab('education')}
             />
-            <MethodologyPanel />
+            <MethodologyTrustPanel />
             <ProviderHealthPanel quality={dataQuality} marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
             <DataDiagnosticsPanel marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
             <SummaryCards assets={allProcessedAssets} />
@@ -549,6 +550,7 @@ export default function App() {
               onGoPortfolio={() => setActiveTab('portfolio')}
               onGoLab={() => setActiveTab('lab')}
             />
+            <MethodologyTrustPanel />
             <InvestmentGlossaryPanel />
             <MacroScenarioPanel indicators={macroIndicators} />
             <InvestmentDriversPanel indicators={macroIndicators} />
