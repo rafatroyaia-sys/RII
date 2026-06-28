@@ -37,6 +37,7 @@ import { PortfolioPage } from './components/portfolio/PortfolioPage';
 import { TradingLabPage } from './components/lab/TradingLabPage';
 import { InvestmentDriversPanel } from './components/education/InvestmentDriversPanel';
 import { MacroScenarioPanel } from './components/education/MacroScenarioPanel';
+import { InvestorRoutinePanel } from './components/education/InvestorRoutinePanel';
 
 // Radar de Asimetría
 import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
@@ -469,6 +470,15 @@ export default function App() {
               </div>
             </div>
             
+            <InvestorRoutinePanel
+              userProfile={userProfile}
+              macroIndicators={macroIndicators}
+              onGoProfile={() => setActiveTab('profile')}
+              onGoMacro={() => setActiveTab('macro')}
+              onGoRadar={() => setActiveTab('radar')}
+              onGoPortfolio={() => setActiveTab('portfolio')}
+              onGoLab={() => setActiveTab('lab')}
+            />
             <FinancialPlanPanel
               assets={allProcessedAssets}
               opportunityCandidates={opportunityCandidates}
@@ -529,6 +539,15 @@ export default function App() {
               {KNOWLEDGE_DISCLAIMER}
             </div>
             <KnowledgeRulesPanel />
+            <InvestorRoutinePanel
+              userProfile={userProfile}
+              macroIndicators={macroIndicators}
+              onGoProfile={() => setActiveTab('profile')}
+              onGoMacro={() => setActiveTab('macro')}
+              onGoRadar={() => setActiveTab('radar')}
+              onGoPortfolio={() => setActiveTab('portfolio')}
+              onGoLab={() => setActiveTab('lab')}
+            />
             <MacroScenarioPanel indicators={macroIndicators} />
             <InvestmentDriversPanel indicators={macroIndicators} />
           </div>
