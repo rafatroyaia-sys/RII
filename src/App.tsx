@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { Suspense, lazy, useState, useMemo, useEffect, useCallback } from 'react';
 import { mockAssets } from './data/mockAssets';
 import { mockMentors, KNOWLEDGE_DISCLAIMER } from './data/mockKnowledge';
 import { processAssets } from './logic/scoringEngine';
@@ -36,7 +36,6 @@ import { MacroTrafficLight } from './components/data/MacroTrafficLight';
 import { CompoundInterestCalculator } from './components/tools/CompoundInterestCalculator';
 import { InvestorProfileTest } from './components/tools/InvestorProfileTest';
 import { PortfolioPage } from './components/portfolio/PortfolioPage';
-import { TradingLabPage } from './components/lab/TradingLabPage';
 import { InvestmentDriversPanel } from './components/education/InvestmentDriversPanel';
 import { MacroScenarioPanel } from './components/education/MacroScenarioPanel';
 import { InvestorRoutinePanel } from './components/education/InvestorRoutinePanel';
@@ -44,9 +43,7 @@ import { InvestmentGlossaryPanel } from './components/education/InvestmentGlossa
 import { MethodologyTrustPanel } from './components/education/MethodologyTrustPanel';
 import { DecisionChecklistPanel } from './components/education/DecisionChecklistPanel';
 import { TrustPrivacyPanel } from './components/education/TrustPrivacyPanel';
-
-// Radar de Asimetría
-import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
+import { LegalNoticePanel } from './components/education/LegalNoticePanel';
 
 // Charts
 import { RiskPotentialMap } from './components/charts/RiskPotentialMap';
@@ -81,6 +78,14 @@ import {
 } from 'lucide-react';
 
 const OPPORTUNITY_HISTORICAL_LIMIT = 14;
+
+const TradingLabPage = lazy(() =>
+  import('./components/lab/TradingLabPage').then(module => ({ default: module.TradingLabPage }))
+);
+
+const AsymmetryRadarPage = lazy(() =>
+  import('./components/asymmetry/AsymmetryRadarPage').then(module => ({ default: module.AsymmetryRadarPage }))
+);
 
 type TabId = 'home' | 'profile' | 'portfolio' | 'calculator' | 'lab' | 'radar' | 'asimetria' | 'macro' | 'education';
 
@@ -175,6 +180,12 @@ const TabGuidancePanel: React.FC<{
     </div>
   );
 };
+
+const TabLoading: React.FC = () => (
+  <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 text-sm font-semibold text-slate-300">
+    Cargando módulo...
+  </div>
+);
 
 const MethodologyPanel: React.FC = () => {
   const items = [
@@ -615,8 +626,23 @@ export default function App() {
             />
             <MethodologyTrustPanel />
             <TrustPrivacyPanel />
-            <ProviderHealthPanel quality={dataQuality} marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
-            <DataDiagnosticsPanel marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
+            <details className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+              <summary className="cursor-pointer select-none text-sm font-bold text-amber-200">
+                Aviso legal educativo
+              </summary>
+              <div className="mt-4">
+                <LegalNoticePanel />
+              </div>
+            </details>
+            <details className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <summary className="cursor-pointer select-none text-sm font-bold text-slate-200">
+                Estado técnico de datos y proveedores
+              </summary>
+              <div className="mt-4 space-y-6">
+                <ProviderHealthPanel quality={dataQuality} marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
+                <DataDiagnosticsPanel marketDataMap={marketDataMap} macroIndicators={macroIndicators} />
+              </div>
+            </details>
             <SummaryCards assets={allProcessedAssets} />
           </div>
         )}
@@ -645,11 +671,13 @@ export default function App() {
 
         {/* Laboratory Tab */}
         {activeTab === 'lab' && (
-          <TradingLabPage
-            assets={allProcessedAssets}
-            userProfile={userProfile}
-            onSelectAsset={setSelectedAsset}
-          />
+          <Suspense fallback={<TabLoading />}>
+            <TradingLabPage
+              assets={allProcessedAssets}
+              userProfile={userProfile}
+              onSelectAsset={setSelectedAsset}
+            />
+          </Suspense>
         )}
 
         {/* Education Tab */}
@@ -684,6 +712,7 @@ export default function App() {
             />
             <MethodologyTrustPanel />
             <TrustPrivacyPanel />
+            <LegalNoticePanel />
             <InvestmentGlossaryPanel />
             <MacroScenarioPanel indicators={macroIndicators} />
             <InvestmentDriversPanel indicators={macroIndicators} />
@@ -805,7 +834,9 @@ export default function App() {
 
         {/* Radar de Asimetría Tab */}
         {activeTab === 'asimetria' && (
-          <AsymmetryRadarPage />
+          <Suspense fallback={<TabLoading />}>
+            <AsymmetryRadarPage />
+          </Suspense>
         )}
 
         {/* Footnote */}
