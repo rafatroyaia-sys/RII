@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ProcessedAsymmetryCompany } from "../../types/asymmetry";
 import { ASYMMETRY_WEIGHTS } from "../../logic/asymmetryEngine";
 import { Badge } from "../ui/Badge";
@@ -17,6 +17,7 @@ import {
   BarChart3,
   ShieldAlert,
 } from "lucide-react";
+import { AsymmetryMovementExplainer } from "../education/AssetMovementExplainer";
 
 interface AsymmetryDetailModalProps {
   company: ProcessedAsymmetryCompany | null;
@@ -78,6 +79,14 @@ export const AsymmetryDetailModal: React.FC<AsymmetryDetailModalProps> = ({
   onClose,
   id,
 }) => {
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
+
   if (!company) return null;
 
   return (
@@ -220,6 +229,8 @@ export const AsymmetryDetailModal: React.FC<AsymmetryDetailModalProps> = ({
                   </h4>
                   <p className="text-sm text-slate-300 leading-relaxed">{company.rankingReason}</p>
                 </div>
+
+                <AsymmetryMovementExplainer company={company} />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <NarrativeList

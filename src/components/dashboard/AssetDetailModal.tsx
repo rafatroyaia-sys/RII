@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ProcessedAsset, MentorProfile, MarketData, RiskLevel } from "../../types";
+import { ProcessedAsset, MentorProfile, MarketData, RiskLevel, MacroIndicator } from "../../types";
 import { 
   X, 
   Info, 
@@ -29,6 +29,7 @@ import { allKnowledgeRules } from "../../data/knowledgeRules";
 import { getRelevantKnowledgeRules } from "../../logic/knowledgeMatcher";
 import { assetMappings } from "../../data/assetMappings";
 import { fetchMarketHistorical } from "../../services/marketDataService";
+import { AssetMovementExplainer } from "../education/AssetMovementExplainer";
 
 interface AssetDetailModalProps {
   asset: ProcessedAsset | null;
@@ -36,6 +37,7 @@ interface AssetDetailModalProps {
   mentors: MentorProfile[];
   id?: string;
   userProfile?: { score: number; name: string } | null;
+  macroIndicators?: MacroIndicator[];
   onCalculateAsset?: (asset: ProcessedAsset, customReturn: number) => void;
 }
 
@@ -151,6 +153,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   mentors, 
   id,
   userProfile,
+  macroIndicators = [],
   onCalculateAsset
 }) => {
   const [historicalData, setHistoricalData] = useState<Partial<MarketData> | null>(null);
@@ -172,6 +175,14 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
       }
     }
   }, [asset]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
 
   if (!asset) return null;
 
@@ -512,6 +523,12 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                     </div>
                   </div>
                 </section>
+
+                <AssetMovementExplainer
+                  asset={asset}
+                  macroIndicators={macroIndicators}
+                  marketData={mData}
+                />
 
                 <section className="bg-slate-800/30 p-5 rounded-2xl border border-white/5">
                   <h3 className="text-sm font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2 mb-4">

@@ -653,6 +653,7 @@ export default function App() {
         onClose={() => setSelectedAsset(null)} 
         mentors={mockMentors}
         userProfile={userProfile}
+        macroIndicators={macroIndicators}
         onCalculateAsset={(asset, customReturn) => {
           setSelectedAsset(null);
           setCalculatorPrefilled({
