@@ -38,6 +38,7 @@ import { TradingLabPage } from './components/lab/TradingLabPage';
 import { InvestmentDriversPanel } from './components/education/InvestmentDriversPanel';
 import { MacroScenarioPanel } from './components/education/MacroScenarioPanel';
 import { InvestorRoutinePanel } from './components/education/InvestorRoutinePanel';
+import { InvestmentGlossaryPanel } from './components/education/InvestmentGlossaryPanel';
 
 // Radar de Asimetría
 import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
@@ -548,6 +549,7 @@ export default function App() {
               onGoPortfolio={() => setActiveTab('portfolio')}
               onGoLab={() => setActiveTab('lab')}
             />
+            <InvestmentGlossaryPanel />
             <MacroScenarioPanel indicators={macroIndicators} />
             <InvestmentDriversPanel indicators={macroIndicators} />
           </div>
