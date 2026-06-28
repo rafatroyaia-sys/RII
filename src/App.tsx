@@ -30,6 +30,7 @@ import { AssetDetailModal } from './components/dashboard/AssetDetailModal';
 import { MiniRanking } from './components/dashboard/MiniRanking';
 import { OpportunityCatalystPanel } from './components/dashboard/OpportunityCatalystPanel';
 import { InvestorCockpitPanel } from './components/dashboard/InvestorCockpitPanel';
+import { AssetComparisonPanel } from './components/dashboard/AssetComparisonPanel';
 import { MacroDashboard } from './components/data/MacroDashboard';
 import { MacroTrafficLight } from './components/data/MacroTrafficLight';
 import { CompoundInterestCalculator } from './components/tools/CompoundInterestCalculator';
@@ -762,6 +763,14 @@ export default function App() {
                   icon={<Radar size={18} />}
                 >
                   <OpportunityCatalystPanel candidates={opportunityCandidates} onSelect={setSelectedAsset} />
+                </SectionCard>
+
+                <SectionCard
+                  title="Comparar antes de decidir"
+                  subtitle="Contrasta dos activos para entender potencial, riesgo, valoracion y encaje educativo"
+                  icon={<Scale size={18} />}
+                >
+                  <AssetComparisonPanel assets={allProcessedAssets} onSelect={setSelectedAsset} />
                 </SectionCard>
                 
                 {/* Filters */}
