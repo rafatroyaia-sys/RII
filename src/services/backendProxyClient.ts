@@ -24,9 +24,9 @@ export async function fetchFredDiagnosticViaProxy(seriesId: string = "FEDFUNDS")
   }
 }
 
-export async function fetchFredSeriesViaProxy(seriesId: string) {
+export async function fetchFredSeriesViaProxy(seriesId: string, limit: number = 1) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/fred?seriesId=${seriesId}`);
+    const response = await fetch(`${API_BASE_URL}/api/fred?seriesId=${seriesId}&limit=${limit}`);
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       return { ok: false, reason: err.reason || err.error || (response.status === 404 ? 'No encontrado' : `Error del proxy: ${response.statusText}`) };

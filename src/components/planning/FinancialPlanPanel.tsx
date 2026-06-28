@@ -102,12 +102,15 @@ function macroValue(indicators: MacroIndicator[], id: string) {
 
 function buildMacroReading(indicators: MacroIndicator[]) {
   const fed = macroValue(indicators, "FEDFUNDS");
-  const cpi = macroValue(indicators, "CPIAUCSL");
+  const cpi = macroValue(indicators, "CPI_YOY");
+  const curve = macroValue(indicators, "YIELD_CURVE_10Y2Y");
   const unrate = macroValue(indicators, "UNRATE");
   const us10y = macroValue(indicators, "GS10");
   const cautions = [
     fed !== null && fed >= 5 ? "Tipos Fed altos: conviene exigir margen de seguridad y evitar euforia en growth caro." : null,
+    cpi !== null && cpi >= 4 ? "Inflacion todavia alta: puede retrasar bajadas de tipos y presionar activos de duracion." : null,
     us10y !== null && us10y >= 4.5 ? "Bono US 10Y exigente: las valoraciones elevadas tienen menos perdon." : null,
+    curve !== null && curve < -0.5 ? "Curva 10Y-2Y invertida: vigilar riesgo de desaceleracion y beneficios empresariales." : null,
     unrate !== null && unrate >= 5 ? "Paro deteriorandose: vigilar riesgo de ciclo y beneficios empresariales." : null,
   ].filter(Boolean) as string[];
 
@@ -119,6 +122,7 @@ function buildMacroReading(indicators: MacroIndicator[]) {
     raw: {
       fed,
       cpi,
+      curve,
       unrate,
       us10y,
     },

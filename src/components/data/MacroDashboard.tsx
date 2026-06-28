@@ -13,24 +13,22 @@ export const MacroDashboard: React.FC<MacroDashboardProps> = ({ indicators }) =>
     <div className="mb-10">
       <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
         <Globe2 className="text-purple-400" />
-        Panel Macroeconómico
+        Panel Macroeconomico
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {indicators.map((indicator) => {
-          const isCpiIndex = indicator.id === 'CPIAUCSL' && (indicator.unit.toLowerCase().includes('índice') || (indicator.value ?? 0) > 20);
-          return (
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3">
+        {indicators.map((indicator) => (
           <div key={indicator.id} className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 flex flex-col justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1 flex items-center justify-between">
                 <span className="truncate pr-1">{indicator.region}</span>
                 <span className={`text-[8px] px-1 rounded ${
-                  indicator.status === 'real' ? (indicator.fromCache ? 'bg-sky-500/20 text-sky-400' : 'bg-emerald-500/20 text-emerald-400') : 
+                  indicator.status === 'real' ? (indicator.fromCache ? 'bg-sky-500/20 text-sky-400' : 'bg-emerald-500/20 text-emerald-400') :
                   indicator.status === 'error' ? 'bg-red-500/20 text-red-400' :
                   indicator.status === 'partial' || indicator.stale ? 'bg-amber-500/20 text-amber-400' :
                   'bg-orange-500/20 text-orange-400'
                 }`}>
-                  {indicator.status === 'real' ? (indicator.fromCache ? 'CACHÉ' : 'REAL') : 
-                   indicator.status === 'error' ? 'ERROR' : 
+                  {indicator.status === 'real' ? (indicator.fromCache ? 'CACHE' : 'REAL') :
+                   indicator.status === 'error' ? 'ERROR' :
                    indicator.status === 'partial' ? 'PARCIAL' : 'SIMULADO'}
                 </span>
               </p>
@@ -46,11 +44,6 @@ export const MacroDashboard: React.FC<MacroDashboardProps> = ({ indicators }) =>
                 {indicator.unit}
               </span>
             </div>
-            {isCpiIndex && (
-              <p className="text-[9px] text-blue-400 mt-1 mb-1 leading-tight">
-                No es tasa interanual; es el nivel del índice CPI.
-              </p>
-            )}
             {indicator.lastUpdated && (
               <p className="text-[9px] text-slate-500 mt-2">
                 Actualizado: {new Date(indicator.lastUpdated).toLocaleDateString()}
@@ -62,8 +55,7 @@ export const MacroDashboard: React.FC<MacroDashboardProps> = ({ indicators }) =>
               </p>
             )}
           </div>
-          );
-        })}
+        ))}
       </div>
     </div>
   );

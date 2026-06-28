@@ -1,6 +1,8 @@
 // Netlify Function: /api/fred → FRED (Federal Reserve) macro data
 exports.handler = async (event) => {
   const seriesId = event.queryStringParameters?.seriesId;
+  const requestedLimit = Number(event.queryStringParameters?.limit || 1);
+  const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(Math.round(requestedLimit), 1), 60) : 1;
   const apiKey = process.env.FRED_API_KEY;
 
   if (!seriesId) {
@@ -30,7 +32,7 @@ exports.handler = async (event) => {
   try {
     const encodedSeriesId = encodeURIComponent(seriesId);
     const encodedApiKey = encodeURIComponent(apiKey);
-    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodedSeriesId}&api_key=${encodedApiKey}&file_type=json&sort_order=desc&limit=1`;
+    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodedSeriesId}&api_key=${encodedApiKey}&file_type=json&sort_order=desc&limit=${limit}`;
     const response = await fetch(url);
 
     const text = await response.text();
@@ -68,7 +70,14 @@ exports.handler = async (event) => {
       };
     }
 
-    if (data.observations && data.observations.length > 0) {
+    const validObservations = (data.observations || [])
+      .map((observation) => ({
+        date: observation.date,
+        value: parseFloat(observation.value),
+      }))
+      .filter((observation) => Number.isFinite(observation.value));
+
+    if (validObservations.length > 0) {
       return {
         statusCode: 200,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
@@ -76,8 +85,9 @@ exports.handler = async (event) => {
           ok: true,
           provider: "FRED",
           seriesId,
-          value: parseFloat(data.observations[0].value),
-          date: data.observations[0].date,
+          value: validObservations[0].value,
+          date: validObservations[0].date,
+          observations: validObservations,
           rawStatus: "real",
         }),
       };

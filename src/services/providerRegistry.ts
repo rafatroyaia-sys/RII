@@ -32,7 +32,7 @@ export const PROVIDERS: ProviderDefinition[] = [
   {
     id: "fred",
     name: "FRED",
-    role: "Tipos, inflacion, desempleo y bono US 10Y",
+    role: "Tipos, inflacion YoY, curva, desempleo, VIX y dolar",
     route: "/api/fred",
     credential: "FRED_API_KEY en servidor",
     cadence: "Cache local 24h",
