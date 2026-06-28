@@ -29,6 +29,7 @@ import { AssetTable } from './components/dashboard/AssetTable';
 import { AssetDetailModal } from './components/dashboard/AssetDetailModal';
 import { MiniRanking } from './components/dashboard/MiniRanking';
 import { OpportunityCatalystPanel } from './components/dashboard/OpportunityCatalystPanel';
+import { InvestorCockpitPanel } from './components/dashboard/InvestorCockpitPanel';
 import { MacroDashboard } from './components/data/MacroDashboard';
 import { MacroTrafficLight } from './components/data/MacroTrafficLight';
 import { CompoundInterestCalculator } from './components/tools/CompoundInterestCalculator';
@@ -571,6 +572,17 @@ export default function App() {
               </div>
             </div>
             
+            <InvestorCockpitPanel
+              userProfile={userProfile}
+              macroIndicators={macroIndicators}
+              opportunityCandidates={opportunityCandidates}
+              assets={allProcessedAssets}
+              onGoProfile={() => setActiveTab('profile')}
+              onGoMacro={() => setActiveTab('macro')}
+              onGoRadar={() => setActiveTab('radar')}
+              onGoPortfolio={() => setActiveTab('portfolio')}
+              onSelectAsset={setSelectedAsset}
+            />
             <InvestorRoutinePanel
               userProfile={userProfile}
               macroIndicators={macroIndicators}
