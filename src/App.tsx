@@ -40,6 +40,7 @@ import { MacroScenarioPanel } from './components/education/MacroScenarioPanel';
 import { InvestorRoutinePanel } from './components/education/InvestorRoutinePanel';
 import { InvestmentGlossaryPanel } from './components/education/InvestmentGlossaryPanel';
 import { MethodologyTrustPanel } from './components/education/MethodologyTrustPanel';
+import { DecisionChecklistPanel } from './components/education/DecisionChecklistPanel';
 
 // Radar de Asimetría
 import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
@@ -579,6 +580,15 @@ export default function App() {
               onGoPortfolio={() => setActiveTab('portfolio')}
               onGoLab={() => setActiveTab('lab')}
             />
+            <DecisionChecklistPanel
+              userProfile={userProfile}
+              macroIndicators={macroIndicators}
+              onGoProfile={() => setActiveTab('profile')}
+              onGoMacro={() => setActiveTab('macro')}
+              onGoRadar={() => setActiveTab('radar')}
+              onGoPortfolio={() => setActiveTab('portfolio')}
+              onGoLab={() => setActiveTab('lab')}
+            />
             <FinancialPlanPanel
               assets={allProcessedAssets}
               opportunityCandidates={opportunityCandidates}
@@ -640,6 +650,15 @@ export default function App() {
             </div>
             <KnowledgeRulesPanel />
             <InvestorRoutinePanel
+              userProfile={userProfile}
+              macroIndicators={macroIndicators}
+              onGoProfile={() => setActiveTab('profile')}
+              onGoMacro={() => setActiveTab('macro')}
+              onGoRadar={() => setActiveTab('radar')}
+              onGoPortfolio={() => setActiveTab('portfolio')}
+              onGoLab={() => setActiveTab('lab')}
+            />
+            <DecisionChecklistPanel
               userProfile={userProfile}
               macroIndicators={macroIndicators}
               onGoProfile={() => setActiveTab('profile')}
