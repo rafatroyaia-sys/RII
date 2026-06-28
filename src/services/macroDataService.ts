@@ -9,6 +9,7 @@ const FRED_API_KEY = (import.meta as any).env?.VITE_FRED_API_KEY;
 
 const MACRO_CACHE_KEY = 'macro_data_cache';
 const MACRO_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const REQUIRED_MACRO_IDS = ["FEDFUNDS", "CPI_YOY", "CORE_CPI_YOY", "GS10", "DGS2", "YIELD_CURVE_10Y2Y", "VIXCLS", "DTWEXBGS"];
 
 interface MacroCacheEntry {
   data: MacroIndicator[];
@@ -92,6 +93,9 @@ function getMacroCache(forceRefresh: boolean = false): MacroIndicator[] | null {
     const rawCache = localStorage.getItem(MACRO_CACHE_KEY);
     if (rawCache) {
       const entry = JSON.parse(rawCache) as MacroCacheEntry;
+      const cachedIds = new Set(entry.data.map((item) => item.id));
+      const hasCurrentSchema = REQUIRED_MACRO_IDS.every((id) => cachedIds.has(id));
+      if (!hasCurrentSchema) return null;
       if (Date.now() - entry.timestamp < MACRO_CACHE_DURATION) {
         return entry.data.map(d => ({ ...d, fromCache: true }));
       }
