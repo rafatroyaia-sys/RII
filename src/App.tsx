@@ -34,6 +34,7 @@ import { MacroTrafficLight } from './components/data/MacroTrafficLight';
 import { CompoundInterestCalculator } from './components/tools/CompoundInterestCalculator';
 import { InvestorProfileTest } from './components/tools/InvestorProfileTest';
 import { PortfolioPage } from './components/portfolio/PortfolioPage';
+import { TradingLabPage } from './components/lab/TradingLabPage';
 
 // Radar de Asimetría
 import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
@@ -64,7 +65,8 @@ import {
   Briefcase,
   Database,
   Scale,
-  ShieldCheck
+  ShieldCheck,
+  FlaskConical
 } from 'lucide-react';
 
 const OPPORTUNITY_HISTORICAL_LIMIT = 14;
@@ -113,7 +115,7 @@ const MethodologyPanel: React.FC = () => {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'portfolio' | 'calculator' | 'radar' | 'asimetria' | 'macro' | 'education'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'portfolio' | 'calculator' | 'lab' | 'radar' | 'asimetria' | 'macro' | 'education'>('home');
   const [filters, setFilters] = useState({
     type: "",
     horizon: "",
@@ -394,6 +396,7 @@ export default function App() {
           <button onClick={() => setActiveTab('profile')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'profile' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><UserCheck size={16}/> <span className="hidden sm:inline">Mi Perfil Inversor</span><span className="sm:hidden">Perfil</span></button>
           <button onClick={() => setActiveTab('portfolio')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'portfolio' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Briefcase size={16}/> <span className="hidden sm:inline">Mi Cartera</span><span className="sm:hidden">Cartera</span></button>
           <button onClick={() => setActiveTab('calculator')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'calculator' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Calculator size={16}/> Calculadora</button>
+          <button onClick={() => setActiveTab('lab')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'lab' ? 'bg-slate-800 text-cyan-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><FlaskConical size={16}/> Laboratorio</button>
           <button onClick={() => setActiveTab('radar')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'radar' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Radar size={16}/> Radar</button>
           <button onClick={() => setActiveTab('asimetria')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'asimetria' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Crosshair size={16}/> <span className="hidden sm:inline">Radar de Asimetría</span><span className="sm:hidden">Asimetría</span></button>
           <button onClick={() => setActiveTab('macro')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'macro' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Globe size={16}/> Macroeconomía</button>
@@ -501,6 +504,15 @@ export default function App() {
         {/* Portfolio Tab */}
         {activeTab === 'portfolio' && (
           <PortfolioPage assets={allProcessedAssets} onSelectAsset={setSelectedAsset} userProfile={userProfile} />
+        )}
+
+        {/* Laboratory Tab */}
+        {activeTab === 'lab' && (
+          <TradingLabPage
+            assets={allProcessedAssets}
+            userProfile={userProfile}
+            onSelectAsset={setSelectedAsset}
+          />
         )}
 
         {/* Education Tab */}
