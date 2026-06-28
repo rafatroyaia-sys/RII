@@ -71,10 +71,106 @@ import {
   Database,
   Scale,
   ShieldCheck,
-  FlaskConical
+  FlaskConical,
+  Compass,
+  ArrowRight
 } from 'lucide-react';
 
 const OPPORTUNITY_HISTORICAL_LIMIT = 14;
+
+type TabId = 'home' | 'profile' | 'portfolio' | 'calculator' | 'lab' | 'radar' | 'asimetria' | 'macro' | 'education';
+
+const TAB_GUIDANCE: Record<TabId, {
+  label: string;
+  title: string;
+  description: string;
+  nextStep: string;
+}> = {
+  home: {
+    label: 'Visión general',
+    title: 'Empieza por el proceso, no por la prisa',
+    description: 'Inicio reúne la ruta recomendada, el estado de datos y los paneles de confianza para usar la herramienta con orden.',
+    nextStep: 'Completa perfil, lee macro y después estudia activos.'
+  },
+  profile: {
+    label: 'Paso 1',
+    title: 'Define tu perfil antes de mirar oportunidades',
+    description: 'El perfil ayuda a traducir tolerancia al riesgo, horizonte y reacción emocional a una guía educativa más realista.',
+    nextStep: 'Usa el resultado para filtrar cartera, radar y laboratorio.'
+  },
+  portfolio: {
+    label: 'Control personal',
+    title: 'Comprueba si tu cartera encaja contigo',
+    description: 'Aquí el inversor ve concentración, riesgo, impacto de caídas y cuánto costaría recuperar pérdidas con aportaciones.',
+    nextStep: 'Contrasta cada posición con macro, riesgo y diversificación.'
+  },
+  calculator: {
+    label: 'Planificación',
+    title: 'Convierte objetivos en números entendibles',
+    description: 'La calculadora enseña cómo interactúan aportaciones, tiempo, rentabilidad esperada e inflación sin prometer resultados.',
+    nextStep: 'Ajusta hipótesis conservadoras antes de mirar activos concretos.'
+  },
+  lab: {
+    label: 'Simulación',
+    title: 'Prueba ideas sin tocar dinero real',
+    description: 'El laboratorio sirve para ensayar reglas, comparar escenarios y registrar operaciones simuladas con disciplina.',
+    nextStep: 'Valida una tesis en paper trading antes de plantear una acción real.'
+  },
+  radar: {
+    label: 'Estudio de activos',
+    title: 'Prioriza qué merece análisis, no qué comprar',
+    description: 'El radar ordena activos por criterios educativos y muestra qué variables macro, técnicas y fundamentales pueden moverlos.',
+    nextStep: 'Abre el detalle de cada activo y revisa qué lo puede mover arriba o abajo.'
+  },
+  asimetria: {
+    label: 'Oportunidades castigadas',
+    title: 'Busca asimetrías con control de riesgo',
+    description: 'Este radar detecta activos con castigo, catalizadores y posible recuperación, pero obliga a mirar riesgos e invalidaciones.',
+    nextStep: 'Comprueba si la oportunidad encaja con tu perfil y tu cartera.'
+  },
+  macro: {
+    label: 'Contexto de mercado',
+    title: 'Lee el viento antes de mirar el activo',
+    description: 'Macroeconomía conecta tipos, inflación, curva, bonos, VIX y dólar con escenarios que suelen favorecer o perjudicar activos.',
+    nextStep: 'Identifica el escenario dominante y luego revisa radar o cartera.'
+  },
+  education: {
+    label: 'Aprendizaje',
+    title: 'Aprende el método para decidir mejor',
+    description: 'Formación agrupa glosario, escenarios, metodología y reglas para que el usuario entienda la herramienta sin salir de la app.',
+    nextStep: 'Busca los conceptos que no entiendas y vuelve al radar con más criterio.'
+  }
+};
+
+const TabGuidancePanel: React.FC<{
+  activeTab: TabId;
+}> = ({ activeTab }) => {
+  const guidance = TAB_GUIDANCE[activeTab];
+
+  return (
+    <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:p-5 shadow-lg shadow-slate-950/20">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 rounded-xl bg-emerald-500/10 p-2 text-emerald-400 border border-emerald-500/20">
+            <Compass size={18} />
+          </div>
+          <div>
+            <div className="text-[11px] font-black uppercase tracking-widest text-emerald-400 mb-1">{guidance.label}</div>
+            <h2 className="text-lg sm:text-xl font-extrabold text-white leading-tight">{guidance.title}</h2>
+            <p className="mt-2 text-sm sm:text-base text-slate-400 leading-relaxed max-w-4xl">{guidance.description}</p>
+          </div>
+        </div>
+        <div className="lg:max-w-sm rounded-xl border border-slate-800 bg-slate-950/70 px-4 py-3">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500 mb-1">
+            <ArrowRight size={14} />
+            Siguiente paso
+          </div>
+          <p className="text-sm font-semibold text-slate-200 leading-snug">{guidance.nextStep}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MethodologyPanel: React.FC = () => {
   const items = [
@@ -120,7 +216,7 @@ const MethodologyPanel: React.FC = () => {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'profile' | 'portfolio' | 'calculator' | 'lab' | 'radar' | 'asimetria' | 'macro' | 'education'>('home');
+  const [activeTab, setActiveTab] = useState<TabId>('home');
   const [filters, setFilters] = useState({
     type: "",
     horizon: "",
@@ -407,6 +503,8 @@ export default function App() {
           <button onClick={() => setActiveTab('macro')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'macro' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><Globe size={16}/> Macroeconomía</button>
           <button onClick={() => setActiveTab('education')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex-shrink-0 ${activeTab === 'education' ? 'bg-slate-800 text-emerald-400 border border-slate-700' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}><BookOpen size={16}/> Formación</button>
         </div>
+
+        <TabGuidancePanel activeTab={activeTab} />
 
         {/* Home Tab */}
         {activeTab === 'home' && (
