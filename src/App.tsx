@@ -36,6 +36,7 @@ import { InvestorProfileTest } from './components/tools/InvestorProfileTest';
 import { PortfolioPage } from './components/portfolio/PortfolioPage';
 import { TradingLabPage } from './components/lab/TradingLabPage';
 import { InvestmentDriversPanel } from './components/education/InvestmentDriversPanel';
+import { MacroScenarioPanel } from './components/education/MacroScenarioPanel';
 
 // Radar de Asimetría
 import { AsymmetryRadarPage } from './components/asymmetry/AsymmetryRadarPage';
@@ -528,6 +529,7 @@ export default function App() {
               {KNOWLEDGE_DISCLAIMER}
             </div>
             <KnowledgeRulesPanel />
+            <MacroScenarioPanel indicators={macroIndicators} />
             <InvestmentDriversPanel indicators={macroIndicators} />
           </div>
         )}
@@ -537,6 +539,7 @@ export default function App() {
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <MacroTrafficLight indicators={macroIndicators} />
             <MacroDashboard indicators={macroIndicators} />
+            <MacroScenarioPanel indicators={macroIndicators} />
             <InvestmentDriversPanel indicators={macroIndicators} />
           </div>
         )}
